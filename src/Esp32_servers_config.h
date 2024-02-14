@@ -19,8 +19,8 @@
 #define DEFAULT_NTP_SERVER_2 "2.si.pool.ntp.org"  // <- replace with your information
 #define DEFAULT_NTP_SERVER_3 "3.si.pool.ntp.org"  // <- replace with your information
 // define time zone to calculate local time from GMT
-#define TZ "CET-1CEST,M3.5.0,M10.5.0/3"  // default: Europe/Ljubljana, or select another (POSIX) time zones: https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
-
+//#define TZ "CET-1CEST,M3.5.0,M10.5.0/3"   // default: Europe/Ljubljana, or select another (POSIX) time zones: https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
+  #define TZ "EET-2EEST,M3.5.0/3,M10.5.0/4"
 
 // 2. FILE SYSTEM:     #define which file system you want to use
 // the file system must correspond to Tools | Partition scheme setting: FILE_SYSTEM_FAT (for FAT partition scheme), FILE_SYSTEM_LITTLEFS (for SPIFFS partition scheme) or FILE_SYSTEM_SD_CARD (if SC card is attached)
@@ -34,8 +34,10 @@
 // #define how ESP32 will connecto to WiFi router
 // this information will be written into /etc/wpa_supplicant/wpa_supplicant.conf file if file_system.h will be included
 // if these #definitions are missing STAtion will not be set up
-#define DEFAULT_STA_SSID                            "YOUR_STA_SSID"       // <- replace with your information
-#define DEFAULT_STA_PASSWORD                        "YOUR_STA_PASSWORD"   // <- replace with your information
+// #define DEFAULT_STA_SSID                          "YOUR_STA_SSID"       // <- replace with your information
+// #define DEFAULT_STA_PASSWORD                      "YOUR_STA_PASSWORD"   // <- replace with your information
+  #define DEFAULT_STA_SSID                           "ESP32"               // <- replace with your information
+  #define DEFAULT_STA_PASSWORD                       "esp32"               // <- replace with your information
 // the use of DHCP or static IP address wil be set in /network/interfaces if fileSystem.hpp is included.
 // The following is information needed for static IP configuration. If these #definitions are missing DHCP is assumed
 // #define DEFAULT_STA_IP                            "10.18.1.200"      // <- replace with your information
@@ -43,6 +45,11 @@
 // #define DEFAULT_STA_GATEWAY                       "10.18.1.1"        // <- replace with your information
 // #define DEFAULT_STA_DNS_1                         "193.189.160.13"   // <- replace with your information
 // #define DEFAULT_STA_DNS_2                         "193.189.160.23"   // <- replace with your information
+   #define DEFAULT_STA_IP                            "192.168.0.30"     // <- replace with your information
+   #define DEFAULT_STA_SUBNET_MASK                   "255.255.255.0"    // <- replace with your information
+   #define DEFAULT_STA_GATEWAY                       "192.168.0.1"      // <- replace with your information
+   #define DEFAULT_STA_DNS_1                         "193.189.160.13"   // <- replace with your information
+   #define DEFAULT_STA_DNS_2                         "193.189.160.23"   // <- replace with your information
 
 // A(ccess) P(oint)
 // #define how ESP32 will set up its access point
@@ -52,6 +59,10 @@
 // #define DEFAULT_AP_PASSWORD                       "YOUR_AP_PASSWORD" // <- replace with your information, at least 8 characters
 // #define DEFAULT_AP_IP                             "192.168.0.1"      // <- replace with your information
 // #define DEFAULT_AP_SUBNET_MASK                    "255.255.255.0"    // <- replace with your information
+   #define DEFAULT_AP_SSID                           "ESP32"            // <- replace with your information,
+   #define DEFAULT_AP_PASSWORD                       "esp32pwd"         // <- replace with your information, at least 8 characters
+   #define DEFAULT_AP_IP                             "192.168.0.30"     // <- replace with your information
+   #define DEFAULT_AP_SUBNET_MASK                    "255.255.255.0"    // <- replace with your information
 
 // define the name Esp32 will use as its host name
 #define HOSTNAME "MyEsp32Server"  // <- replace with your information,  max 32 bytes
