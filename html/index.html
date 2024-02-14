@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+	<title>Esp32_web_ftp_telnet_server_template</title>
+
+	<meta charset='UTF-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+	
+	<link rel='shortcut icon' type='image/x-icon' sizes='192x192' href='/android-192.png'>
+	<link rel='icon' type='image/png' sizes='192x192' href='/android-192.png'>
+	<link rel='apple-touch-icon' sizes='180x180' href='/apple-180.png'>
+
+	<style>
+		/* nice page framework */
+		hr {border: 0; border-top: 1px solid lightgray; border-bottom: 1px solid lightgray}
+
+		h1 {font-family: verdana; font-size: 40px; text-align: center}
+
+		/* define grid for controls - we'll use d2 + d5 or d3 + d4 + d5 */
+		div.d1 {position: relative; height: 65px; width: 100%; font-family: verdana; font-size: 30px; color: hsl(207, 90%, 30%);}
+		div.d2 {position: relative; float: left;  width:  60%; font-family: verdana; font-size: 30px; color: gray;}
+		div.d3 {position: relative; float: left;  width:  40%; font-family: verdana; font-size: 30px; color: gray;}
+		div.d4 {position: relative; float: left;  width:  20%; font-family: verdana; font-size: 30px; color: black;}
+		div.d5 {position: relative; float: left;  width:  40%; font-family: verdana; font-size: 30px; color: black;}
+
+		/* nice switch control */
+		.switch {position: relative; display: inline-block; width: 60px; height: 34px}
+		.slider {position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; -webkit-transition: .4s; transition: .4s}
+		.slider:before {position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s}
+		input:checked+.slider {background-color: hsl(207, 90%, 30%) }
+		input:focus+.slider {box-shadow: 0 0 1px hsl(207, 90%, 30%) }
+		input:checked+.slider:before {-webkit-transform: translateX(26px); -ms-transform: translateX(26px); transform: translateX(26px)}
+		.switch input {display: none}
+		.slider.round {border-radius: 34px}
+		.slider.round:before {border-radius: 50%}
+		input:disabled+.slider {background-color: #aaa}
+
+		a:link, a:visited {color: gray; text-decoration: none; cursor: auto;}
+		a:hover {color: hsl(207, 90%, 30%); cursor:pointer; }
+		a:link:active, a:visited:active {color: gray;}
+
+		dialog[open] {
+			font-family: verdana; 
+			font-size: 28px; 
+			color: white;
+			background-color:rgb(200 0 0 / 0.90);
+			border: solid rgb(200 0 0 / 0.90) 0px;
+			border-radius: 12px;
+			/*
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			*/
+  		}
+
+	</style>
+</head>
+
+<body>
+		
+	<br><h1><small>A brief demonstration of Esp32_web_ftp_telnet_server_template web user interface capabilities</small></h1>
+
+	<!-- error message -->
+	<dialog id="errDialog"></dialog>
+
+	<div class='d1'>
+		<b>HTML/REST/JSON <small>bi-directional communication with ESP32</small></b>
+	</div>
+	<hr />
+	<div class='d1'>
+		<div class='d2'>&nbsp;Built-in LED<br>&nbsp;<small><small>Use of nice controls.</small></small></div>
+		<div class='d5'>
+			<label class='switch'><input type='checkbox' disabled id='ledSwitch' onClick='turnLed (this.checked)'><div class='slider round'></div></label>
+		</div>
+	</div>
+	<hr />
+	<div class='d1'>
+		<div class='d2'>&nbsp;Up time<br>&nbsp;<small><small>Test stability of the code.</small></small></div>
+		<div class='d5' id='upTime'>...</div>
+	</div>
+	<hr />
+	<div class='d1'>
+		<div class='d3'>&nbsp;Free heap<br>&nbsp;<small><small>Find memory leaks.</small></small></div>
+		<div class='d4' id='freeHeap'>...</div>
+		<div class='d5'><canvas id='freeHeapGraph' height='62'></canvas></div>
+	</div>
+	<hr />
+	<div class='d1'>
+		<div class='d3'>&nbsp;Max free heap block<br>&nbsp;<small><small>Find heap related problems.</small></small></div>
+		<div class='d4' id='freeBlock'>...</div>
+		<div class='d5'><canvas id='freeBlockGraph' height='62'></canvas></div>
+	</div>
+	<hr />
+	<div class='d1'>
+		<div class='d3'>&nbsp;HTTP requests<br>&nbsp;<small><small>Measurements.</small></small></div>
+		<div class='d4' id='httpRequestCount'>...</div>
+		<div class='d5'><canvas id='httpRequestCountGraph' height='62'></canvas></div>	
+	</div>
+	<hr />
+
+	<br><br>
+	<div class='d1'>
+		<b>HTML/WebSocket <small>data streaming from ESP32</small></b>
+	</div>
+	<hr />
+	<div class='d1'>
+		<div class='d3'>&nbsp;RSSI<br>&nbsp;<small><small>Find connectivity problems.</small></small></div>
+		<div class='d4' id='rssi'>...</div>
+		<div class='d5'><canvas id='rssiGraph' height='62'></canvas></div>	
+	</div>
+	<hr /> 
+
+	<script type='text/javascript'>
+
+		var freeHeapTO;
+		var freeBlockTO;
+		var httpRequestCountTO;
+
+		// correct canvas scaling and sizes
+		function resizeCanvases () {
+			var canvasWidth = document.getElementById ('upTime').clientWidth;
+			var canvasScaleWidth = canvasWidth / document.getElementById ('httpRequestCountGraph').clientWidth;
+						
+			document.getElementById ('freeHeapGraph').width = canvasWidth;
+			document.getElementById ('freeBlockGraph').width = canvasWidth;
+			document.getElementById ('httpRequestCountGraph').width = canvasWidth;
+			document.getElementById ('rssiGraph').width = canvasWidth;
+			document.getElementById ('freeHeapGraph').getContext ('2d').scale (canvasScaleWidth, 1);
+			document.getElementById ('freeBlockGraph').getContext ('2d').scale (canvasScaleWidth, 1);
+			document.getElementById ('httpRequestCountGraph').getContext ('2d').scale (canvasScaleWidth, 1);
+			document.getElementById ('rssiGraph').getContext ('2d').scale (canvasScaleWidth, 1);
+
+			// schedule REST calls with small delays so that all requests would not be sent to ESP32 at the same time
+			clearTimeout (freeHeapTO);
+			freeHeapTO = setTimeout (function () {
+				client.request ('/freeHeap', 'GET', function (json) {document.getElementById ('freeHeap').innerText = lineGraph (json,'freeHeapGraph','#0961aa') + ' KB';});
+			}, 100);
+			clearTimeout (freeBlockTO);
+			freeBlockTO = setTimeout (function () {
+				client.request ('/freeBlock', 'GET', function (json) {document.getElementById ('freeBlock').innerText = lineGraph (json,'freeBlockGraph','#0961aa') + ' KB';});
+			}, 300);
+			clearTimeout (httpRequestCountTO);
+			httpRequestCountTO = setTimeout (function () {
+				client.request ('/httpRequestCount', 'GET', function (json) {document.getElementById('httpRequestCount').innerText = lineGraph (json, 'httpRequestCountGraph', '#2597f4') + ' / min';});
+			}, 500);
+		}
+		resizeCanvases ();
+		window.addEventListener ('resize', (e) => {         
+			resizeCanvases ();
+		});
+
+		// mechanism that makes REST calls and get their replies
+		var httpClient = function () {
+			this.request = function (url, method, callback) {
+				var httpRequest = new XMLHttpRequest ();
+				var httpRequestTimeout = null;
+				
+				httpRequest.onreadystatechange = function () {
+					// console.log (httpRequest.readyState);
+					if (httpRequest.readyState == 1) { // 1 = OPENED, start timing
+						clearTimeout (httpRequestTimeout);
+						httpRequestTimeout = setTimeout (function () { 
+							// alert ('Server did not reply (in time).'); 
+							errorMessage ('Server did not reply (in time).');
+						}, 5000);
+					}
+					if (httpRequest.readyState == 4) { // 4 = DONE, call callback function with responseText
+						clearTimeout (httpRequestTimeout);
+						switch (httpRequest.status) {
+							case 200: 	callback (httpRequest.responseText); // 200 = OK
+										break;
+							case 0:		break;
+							default: 	// alert ('Server reported error ' + httpRequest.status + ' ' + httpRequest.responseText); // some other reply status, like 404, 503, ...
+										errorMessage ('Server reported error ' + httpRequest.status + ' ' + httpRequest.responseText);
+										break;
+						}
+					}
+				}
+				httpRequest.open (method, url, true);
+				httpRequest.send (null);
+			}
+		}
+
+		var client = new httpClient ();
+
+		// error message
+		var errorMessageTimeout = null;
+		function errorMessage (msg) {
+			clearTimeout (errorMessageTimeout);
+			document.getElementById ('errDialog').textContent = msg;
+			document.getElementById ('errDialog').showModal ();
+			errorMessageTimeout = setTimeout (function () {
+				document.getElementById ('errDialog').close ();
+			}, 3000);				
+		}
+
+		function getAndRefreshLedState () { // read led state from ESP and refresh GUI
+			client.request ('/builtInLed', 'GET', function (json) {refreshLedState (json);});
+		}
+
+		function turnLed (switchIsOn) { // send desired led state to ESP and refresh GUI
+			client.request (switchIsOn ? '/builtInLed/on' : '/builtInLed/off' , 'PUT', function (json) {refreshLedState (json);});
+		}
+
+		function refreshLedState (json) { // refresh ledSwitch state with latest information from ESP
+			var obj = JSON.parse (json);
+			document.getElementById ('ledSwitch').disabled = false; 
+			document.getElementById ('ledSwitch').checked = (obj.builtInLed == 'on');
+		}
+
+		getAndRefreshLedState (); // GUI initialization at load
+
+		function refreshUpTime (json) { // refresh up time with latest information from ESP
+			document.getElementById ('upTime').innerText = (JSON.parse (json).upTime);
+		}
+
+		function lineGraph(json,contextId,graphColour){
+
+			var obj=JSON.parse (json);
+			if (obj.value.length == 0) return '';
+			var retVal = obj.value [0];
+			var minVal = parseInt (obj.value [0]);
+			var maxVal = parseInt (obj.value [0]);
+			for (i = 1; i < obj.value.length; i++){
+				var m = parseInt (obj.value [i]);
+				if (minVal > m) minVal = m;
+				if (maxVal < m) maxVal = m;
+			}
+			var midVal;
+			if (minVal == maxVal){
+				minVal --;
+				midVal = maxVal;
+				maxVal ++;
+			} else {
+				if ((maxVal - minVal) % 2 == 1) maxVal ++;
+				midVal=(minVal + maxVal) / 2;
+			}
+			var c = document.getElementById (contextId);
+			var ctx = c.getContext ('2d');
+
+			var ox = 30;
+			var fx = 18; if (obj.value.length > 24) fx = (c.width - ox - 3) / 60;
+			var fy = (c.height - 20) / (minVal - maxVal);
+			oy = c.height - 20 + 2 - fy * minVal; // leave 2 * text height free, 2 is half of linegraph width
+			ctx.clearRect (0, 0, 500, c.height); // c.width is not neccessary 500
+			ctx.font = '10px Verdana';
+			ctx.fillText (maxVal, 10, 10);
+			ctx.fillText (midVal, 10, c.height / 2);
+			ctx.fillText (minVal, 10, c.height - 10);
+			for (i = 0; i < obj.scale.length; i++) {
+				ctx.fillText (obj.scale [i], ox + fx * (i + 1) - 5, c.height);
+			}
+			ctx.beginPath ();
+			ctx.moveTo (ox + fx,oy + fy * parseInt (obj.value [0]));
+			for(i = 1; i < obj.value.length; i++){
+				ctx.lineTo (ox + fx * (i + 1), oy + fy * parseInt (obj.value [i]));
+				retVal = obj.value [i];
+			}
+			ctx.lineWidth = 4;
+			ctx.strokeStyle = graphColour;
+			ctx.stroke ();
+			return retVal;
+		}
+
+		setInterval (function () {
+			client.request ('/upTime', 'GET', function (json) {refreshUpTime (json);});
+		}, 1000);
+
+		setTimeout (function () {
+			setInterval (function () {
+				client.request ('/freeHeap', 'GET', function (json) {document.getElementById ('freeHeap').innerText = lineGraph (json, 'freeHeapGraph', '#0961aa') + ' KB';});
+			}, 60000);
+		}, 100);
+
+		setTimeout (function () {
+			setInterval (function () {
+				client.request ('/freeBlock', 'GET', function (json) {document.getElementById ('freeBlock').innerText = lineGraph (json, 'freeBlockGraph', '#0961aa') + ' KB';});
+			}, 60000);
+		}, 300);
+
+		setTimeout (function () {
+			setInterval (function () {
+				client.request ('/httpRequestCount', 'GET', function (json) {document.getElementById ('httpRequestCount').innerText = lineGraph (json, 'httpRequestCountGraph', '#2597f4') + ' / min';});
+			}, 60000);
+		}, 500);
+
+		// WebSocket streaming:
+		// we should have a circular queue od measurements here but since we already have
+		// a function that dispalys nice graphs from JSON let's just keep all the data in 
+		// JSON
+
+		var rssiSamples = 0;
+		var rssiSeconds = 0;
+		var rssiScaleJson = '';
+		var rssiValueJson = '';
+
+			if ('WebSocket' in window) {
+				var ws = new WebSocket ('ws://' + self.location.host + '/rssiReader'); // open webSocket connection
+				ws.onopen = function () {;};
+				ws.onmessage = function (evt) { 
+					if (evt.data instanceof Blob) { // RSSI readings as 1 byte binary data
+						// receive binary data as blob and then convert it into array
+						var myByteArray = null;
+						var myArrayBuffer = null;
+						var myFileReader = new FileReader ();
+						myFileReader.onload = function (event) 	{
+							myArrayBuffer = event.target.result;
+							myByteArray = new Int8Array (myArrayBuffer); // <= RSSI information is now in the array of size 1
+							// document.getElementById('rssi').innerText = myByteArray [0].toString () + ' dBm';
+							// insert new data into JSON and display graph from it
+							if (rssiSamples == 0) {
+								rssiSamples = 1;
+								rssiScaleJson = '"|"';
+								rssiValueJson = '"' + myByteArray [0].toString () + '"';
+							} else {
+								rssiSamples ++;
+								if (++ rssiSeconds == 9) {
+									rssiScaleJson += ',"|"';
+									rssiSeconds = 0;
+								} else {
+									rssiScaleJson += ',""';
+								}
+								rssiValueJson += ',"' + myByteArray [0].toString () + '"';
+								if (rssiSamples >= 60) {
+									rssiSamples --;
+									var i;
+									i = rssiScaleJson.indexOf (','); rssiScaleJson = rssiScaleJson.substring (i + 1);
+									i = rssiValueJson.indexOf (','); rssiValueJson = rssiValueJson.substring (i + 1);
+								}
+							}
+
+							document.getElementById ('rssi').innerText=lineGraph ('{"scale":[' + rssiScaleJson + '],"value":[' + rssiValueJson + ']}', 'rssiGraph','#ff8533') + ' dBm';
+
+						};
+						myFileReader.readAsArrayBuffer (evt.data);
+					}
+				};
+			} else {
+				alert ('WebSockets are not supported by your browser.');
+			}
+
+	</script>
+
+	<br><br><h1><small>Web server examples</small></h1><br>
+
+	<hr />
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/example01.html">example01.html</a></div>
+		<div class='d2'><small><small>Dynamically generated HTML page.</small></small></div>
+	</div>
+	<hr />
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/example02.html">example02.html</a></div>
+		<div class='d2'><small><small>Static HTML page (.html file) calling REST functions.</small></small></div>
+	</div>
+	<hr />
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/example03.html">example03.html</a></div>
+		<div class='d2'><small><small>Checkbox calling REST functions.</small></small></div>
+	</div>
+	<hr />
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/example04.html">example04.html</a></div>
+		<div class='d2'><small><small>Stylish checkbox calling REST functions.</small></small></div>
+	</div>
+	<hr />
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/example05.html">example05.html</a></div>
+		<div class='d2'><small><small>Nice web GUI controls.</small></small></div>
+	</div>
+	<hr />
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/example07.html">example07.html</a></div>
+		<div class='d2'><small><small>Example of cookie set by web server.</small></small></div>
+	</div>
+	<hr />
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/login.html">login.html</a></div>
+		<div class='d2'><small><small>Web session login example.</small></small></div>
+	</div>
+
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/protectedPage.html">protectedPage.html</a></div>
+		<div class='d2'><small><small>Only loggedin users can access this page.</small></small></div>
+	</div>
+	<hr />
+	<div class='d1' style='height: 42px;'>
+		<div class='d3'>&nbsp;<a href="/oscilloscope.html">oscilloscope.html</a></div>
+		<div class='d2'><small><small>See what is going on within your ESP32 project.</small></small></div>
+	</div>
+	<hr />
+	<br>
+
+</body>
+</html>
