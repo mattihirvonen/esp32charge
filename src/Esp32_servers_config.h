@@ -101,7 +101,8 @@
 
 
 // 4. USERS:     #define what kind of user management you want before #including user_management.h
-#define USER_MANAGEMENT   UNIX_LIKE_USER_MANAGEMENT   // or HARDCODED_USER_MANAGEMENT or NO_USER_MANAGEMENT
+// Choices are:  UNIX_LIKE_USER_MANAGEMENT, HARDCODED_USER_MANAGEMENT (only root) or NO_USER_MANAGEMENT (anybody)
+#define USER_MANAGEMENT   UNIX_LIKE_USER_MANAGEMENT
 // if UNIX_LIKE_USER_MANAGEMENT is selected you must also include file_system.h to be able to use /etc/passwd and /etc/shadow files
 #define DEFAULT_ROOT_PASSWORD     "rootpassword"        // <- replace with your information if UNIX_LIKE_USER_MANAGEMENT or HARDCODED_USER_MANAGEMENT are used
 #define DEFAULT_WEBADMIN_PASSWORD "webadminpassword"    // <- replace with your information if UNIX_LIKE_USER_MANAGEMENT is used
