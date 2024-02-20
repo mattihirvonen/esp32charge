@@ -28,28 +28,41 @@
 
 #define FILE_SYSTEM   FILE_SYSTEM_LITTLEFS  // LittleFS uses the least of memory, which may be needed for all the functionalities to run
 
-
 // 3. NETWORK:     #define how ESP32 will use the network
+
+#define WIFI_DELETE_CONF   1   // Delete existing network configuration files (and force following new config)
+#define WIFI_STATION_MODE  0   // Select STA(tion) mode or A(ccess) P(oint)
+#define WIFI_STATION_IP    0   // Select fixed IP or DHCP in STA(tion) mode 
+
+#if WIFI_STATION_MODE
+
 // STA(tion)
 // #define how ESP32 will connecto to WiFi router
 // this information will be written into /etc/wpa_supplicant/wpa_supplicant.conf file if file_system.h will be included
 // if these #definitions are missing STAtion will not be set up
 // #define DEFAULT_STA_SSID                          "YOUR_STA_SSID"       // <- replace with your information
 // #define DEFAULT_STA_PASSWORD                      "YOUR_STA_PASSWORD"   // <- replace with your information
-  #define DEFAULT_STA_SSID                           "ESP32"               // <- replace with your information
-  #define DEFAULT_STA_PASSWORD                       "esp32"               // <- replace with your information
+   #define DEFAULT_STA_SSID                          "????????"            // <- replace with your information
+   #define DEFAULT_STA_PASSWORD                      "????????"            // <- replace with your information
+
+#if WIFI_STATION_IP
+
 // the use of DHCP or static IP address wil be set in /network/interfaces if fileSystem.hpp is included.
-// The following is information needed for static IP configuration. If these #definitions are missing DHCP is assumed
+// The following is information needed for static IP configuration.
+// If these #definitions are missing DHCP is assumed
 // #define DEFAULT_STA_IP                            "10.18.1.200"      // <- replace with your information
 // #define DEFAULT_STA_SUBNET_MASK                   "255.255.255.0"    // <- replace with your information
 // #define DEFAULT_STA_GATEWAY                       "10.18.1.1"        // <- replace with your information
 // #define DEFAULT_STA_DNS_1                         "193.189.160.13"   // <- replace with your information
 // #define DEFAULT_STA_DNS_2                         "193.189.160.23"   // <- replace with your information
-   #define DEFAULT_STA_IP                            "192.168.0.30"     // <- replace with your information
+   #define DEFAULT_STA_IP                            "192.168.1.30"     // <- replace with your information
    #define DEFAULT_STA_SUBNET_MASK                   "255.255.255.0"    // <- replace with your information
-   #define DEFAULT_STA_GATEWAY                       "192.168.0.1"      // <- replace with your information
+   #define DEFAULT_STA_GATEWAY                       "192.168.1.1"      // <- replace with your information
    #define DEFAULT_STA_DNS_1                         "193.189.160.13"   // <- replace with your information
    #define DEFAULT_STA_DNS_2                         "193.189.160.23"   // <- replace with your information
+
+#endif // WIFI_STATION_IP
+#else  // WIFI_STATION_MODE
 
 // A(ccess) P(oint)
 // #define how ESP32 will set up its access point
@@ -61,8 +74,11 @@
 // #define DEFAULT_AP_SUBNET_MASK                    "255.255.255.0"    // <- replace with your information
    #define DEFAULT_AP_SSID                           "ESP32"            // <- replace with your information,
    #define DEFAULT_AP_PASSWORD                       "esp32pwd"         // <- replace with your information, at least 8 characters
-   #define DEFAULT_AP_IP                             "192.168.0.30"     // <- replace with your information
+   #define DEFAULT_AP_IP                             "192.168.2.1"      // <- replace with your information
    #define DEFAULT_AP_SUBNET_MASK                    "255.255.255.0"    // <- replace with your information
+
+#endif // WIFI_STATION_MODE
+
 
 // define the name Esp32 will use as its host name
 #define HOSTNAME "MyEsp32Server"  // <- replace with your information,  max 32 bytes
@@ -87,9 +103,9 @@
 // 4. USERS:     #define what kind of user management you want before #including user_management.h
 #define USER_MANAGEMENT   UNIX_LIKE_USER_MANAGEMENT   // or HARDCODED_USER_MANAGEMENT or NO_USER_MANAGEMENT
 // if UNIX_LIKE_USER_MANAGEMENT is selected you must also include file_system.h to be able to use /etc/passwd and /etc/shadow files
-#define DEFAULT_ROOT_PASSWORD "rootpassword"          // <- replace with your information if UNIX_LIKE_USER_MANAGEMENT or HARDCODED_USER_MANAGEMENT are used
-#define DEFAULT_WEBADMIN_PASSWORD "webadminpassword"  // <- replace with your information if UNIX_LIKE_USER_MANAGEMENT is used
-#define DEFAULT_USER_PASSWORD "changeimmediatelly"    // <- replace with your information if UNIX_LIKE_USER_MANAGEMENT is used
+#define DEFAULT_ROOT_PASSWORD     "rootpassword"        // <- replace with your information if UNIX_LIKE_USER_MANAGEMENT or HARDCODED_USER_MANAGEMENT are used
+#define DEFAULT_WEBADMIN_PASSWORD "webadminpassword"    // <- replace with your information if UNIX_LIKE_USER_MANAGEMENT is used
+#define DEFAULT_USER_PASSWORD     "changeimmediatelly"  // <- replace with your information if UNIX_LIKE_USER_MANAGEMENT is used
 
 
 // 5. #include (or comment-out) the functionalities you want (or don't want) to use
