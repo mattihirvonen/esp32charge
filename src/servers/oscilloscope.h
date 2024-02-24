@@ -1064,6 +1064,7 @@
       // start analog sampling on GPIO 22, 23 every 100 ms screen width = 400 ms set positive slope trigger to 512 set negative slope trigger to 0
       string s = webSocket->readString (); 
       __oscilloscope_h_debug__ ("runOscilloscope: command =  " + String ((char *) s));
+     Serial.printf ("runOscilloscope: command = %s\n", (char *) s);
 
       if (s == "") {
         #ifdef __DMESG__
@@ -1074,6 +1075,7 @@
       }
       
       // try to parse what we have got from client
+      int  attenuation = ADC_ATTEN_DB_11;
       char posNeg1 [9] = "";
       char posNeg2 [9] = "";
       int treshold1;
@@ -1081,15 +1083,19 @@
       char *cmdPart1 = (char *) s;
       char *cmdPart2 = strstr (cmdPart1, " every"); 
       char *cmdPart3 = NULL;
+    
       if (cmdPart2) {
         *(cmdPart2++) = 0;
         cmdPart3 = strstr (cmdPart2, " set"); 
         if (cmdPart3) 
           *(cmdPart3++) = 0;
       }
+      
+      // ToDo: Parse command line by tokenization instead of fixed character positions in format string
+
       // parse 1st part
       sharedMemory.gpio1 = sharedMemory.gpio2 = 255; // invalid GPIO
-      if (sscanf (cmdPart1, "start %7s sampling on GPIO %2i, %2i", sharedMemory.readType, &sharedMemory.gpio1, &sharedMemory.gpio2) < 2) {
+      if (sscanf (cmdPart1, "start %7s ATTEN %1i sampling on GPIO %2i, %2i", sharedMemory.readType, &attenuation, &sharedMemory.gpio1, &sharedMemory.gpio2) < 3) {
         #ifdef __DMESG__
             dmesg ("[oscilloscope] oscilloscope protocol syntax error.");
         #endif
@@ -1140,8 +1146,8 @@
               // MH:   Add original project missing ADC1 initializations
               // Note: ADC2 do not operate same time with WiFi
 
-              static const adc_atten_t       atten = ADC_ATTEN_DB_11;      // DB_0=0  DB_2_5=1  DB_6=2  DB_11=3  MAX=?
-              static const adc_bits_width_t  width = ADC_WIDTH_BIT_12;     // 12, 11, 10 or 9
+              adc_atten_t       atten = (adc_atten_t) attenuation;  // MH: ADC_ATTEN_DB_11 - DB_0=0  DB_2_5=1  DB_6=2  DB_11=3
+              adc_bits_width_t  width = ADC_WIDTH_BIT_12;           // MH: 12, 11, 10 or 9
 
               Serial.printf ("[oscilloscope] configure ADC1");
               #ifdef __DMESG__

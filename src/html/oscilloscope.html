@@ -135,6 +135,11 @@
     <div class='d1' style='height: 50px;'>
       <div class='d2'>&nbsp;ESP32 GPIOs <small><small>(1, 2)</small></div>
       <div class='d3' style='color: gray;'>
+        <select id='atten'>
+          <option value='0'>ATTEN  0</option><option value='1'>ATTEN  1</option><option value='2'>ATTEN  2</option><option value='3' selected='selected'>ATTEN  3</option>
+        </select>
+      </div>
+      <div class='d3' style='color: gray;'>
         <select id='gpio1'>
           <option value='0'>GPIO  0</option><option value='1'>GPIO  1</option><option value='2' selected='selected'>GPIO  2</option><option value='3'>GPIO  3</option><option value='4'>GPIO  4</option><option value='5'>GPIO  5</option>
           <option value='12'>GPIO 12</option><option value='13'>GPIO 13</option><option value='14'>GPIO 14</option><option value='15'>GPIO 15</option><option value='16'>GPIO 16</option>
@@ -371,6 +376,7 @@
       var v;
       v = getCookie ('gpio1'); if (v != '') document.getElementById ('gpio1').value = v;
       v = getCookie ('gpio2'); if (v != '') document.getElementById ('gpio2').value = v;
+      v = getCookie ('atten'); if (v != '') document.getElementById ('atten').value = v;
       v = getCookie ('analog'); if (v == 'true') document.getElementById ('analog').checked = true; else document.getElementById ('digital').checked = true;
       v = getCookie ('sensitivity'); if (v != '') { document.getElementById ('sensitivity').value = v; document.getElementById ('sensitivityLabel').textContent = sensitivityLabelFromSensitivitySlider (v); }
       v = getCookie ('position'); if (v != '') { document.getElementById ('position').value = v; document.getElementById ('positionLabel').textContent = v;}
@@ -391,6 +397,7 @@
           // set cookies for 10 years
           setCookie ('gpio1', document.getElementById ('gpio1').value, 3652);
           setCookie ('gpio2', document.getElementById ('gpio2').value, 3652);
+          setCookie ('atten', document.getElementById ('atten').value, 3652);
           setCookie ('analog', document.getElementById ('analog').checked, 3652);
           setCookie ('sensitivity', document.getElementById ('sensitivity').value, 3652);
           setCookie ('position', document.getElementById ('position').value, 3652);
@@ -444,20 +451,26 @@
 						ws.send (endianArray);
 
 						// then send start command with sampling parameters
-						var startCommand = 'start ' + (document.getElementById ('analog').checked ? 'analog' : 'digital') + ' sampling on GPIO ' + document.getElementById ('gpio1').value + (document.getElementById ('gpio2').value == 255 ? '' : ', ' + document.getElementById ('gpio2').value) + ' every ';
+						var startCommand = 'start ' + (document.getElementById ('analog').checked ? 'analog' : 'digital') +
+                                ' ATTEN ' + document.getElementById ('atten').value +
+                                ' sampling on GPIO ' + document.getElementById ('gpio1').value +
+                                (document.getElementById ('gpio2').value == 255 ? '' : ', ' +
+                                 document.getElementById ('gpio2').value) + ' every ';
+
 						switch (document.getElementById ('frequency').value) {
 
-							// real sampling times will be passed back to browser in 16 bit integers - take care that values are <= 2^15 ( = 32767) but it is better to keep it below 5000 to be on the safe side !
+							// real sampling times will be passed back to browser in 16 bit integers -
+							// take care that values are <= 2^15 ( = 32767) but it is better to keep it below 5000 to be on the safe side !
 
 							// please note that oscilloscope reader can put in the output buffer  max 746 - 1 (continuous analog signal) samples per screen,
-              //                                                                    max 373 - 1 (1 signal) samples per screen,
-              //                                                                    max 248 - 1 (2 signals) samples per screen
+							//                                                                    max 373 - 1 (1 signal) samples per screen,
+							//                                                                    max 248 - 1 (2 signals) samples per screen
 							// but the number may be significantly lower if ESP32 can not keep up to required sampling rate
-              // for orientation, oscilloscope can make 1 (1 signal) digital sample roughly every 1.6 us,
-              //                                        1 (2 signals) digital sample roughly every 2.5 us,
-              //                                        1 (1 signal) analog sample roughly every 70 us,
-              //                                        1 (2 signals) analog sample roughly every 150 us,
-              //                                        max continuous analog sampling (1 signal only) frequency = 150 kHz (1 signal every 6,6 us)
+							// for orientation, oscilloscope can make 1 (1 signal) digital sample roughly every 1.6 us,
+							//                                        1 (2 signals) digital sample roughly every 2.5 us,
+							//                                        1 (1 signal) analog sample roughly every 70 us,
+							//                                        1 (2 signals) analog sample roughly every 150 us,
+							//                                        max continuous analog sampling (1 signal only) frequency = 150 kHz (1 signal every 6,6 us)
 
 							// 1 sample at a time mode, measurements in ms, actual sampling rate may be lower than specified
 
@@ -472,7 +485,7 @@
 									break;
 
 							// screen at a time mode from now on
-              // switch to measurements in us from now on, actual sampling rate may be lower than specified
+							// switch to measurements in us from now on, actual sampling rate may be lower than specified
 
 							case '4':	// screen width = 1 s => horizontal frequency = 1 Hz, 400 samples per screen => sampling interval = 2500 us, sampling frequency (1 signal) = 400 Hz
 									startCommand += '2500 us screen width = 1000000 us'; 
@@ -480,44 +493,44 @@
 							case '5':	// screen width = 500 ms => horizontal frequency = 2 Hz, 400 samples per screen => sampling interval = 1250 us, sampling frequency (1 signal) = 800 Hz
 									startCommand += '1250 us screen width = 500000 us';
 									break;
-              case '6':	// screen width = 200 ms => horizontal frequency = 5 Hz, 400 samples per screen => sampling interval = 500 us, sampling frequency (1 signal) = 2 kHz
+							case '6':	// screen width = 200 ms => horizontal frequency = 5 Hz, 400 samples per screen => sampling interval = 500 us, sampling frequency (1 signal) = 2 kHz
 									startCommand += '500 us screen width = 200000 us';
 									break;
-              case '7':	// screen width = 100 ms => horizontal frequency = 10 Hz, 400 samples per screen => sampling interval = 250 us, sampling frequency (1 signal) = 4 kHz
+							case '7':	// screen width = 100 ms => horizontal frequency = 10 Hz, 400 samples per screen => sampling interval = 250 us, sampling frequency (1 signal) = 4 kHz
 									startCommand += '250 us screen width = 100000 us';
 									break;
 							case '8':	// screen width = 50 ms => horizontal frequency = 20 Hz, 400 samples per screen => sampling interval = 125 us, sampling frequency (1 signal) = 8 kHz
 									startCommand += '125 us screen width = 50000 us';
 									break;
-              case '9':	// screen width = 20 ms => horizontal frequency = 50 Hz, 400 samples per screen => sampling interval = 50 us, sampling frequency (1 signal) = 20 kHz
+							case '9':	// screen width = 20 ms => horizontal frequency = 50 Hz, 400 samples per screen => sampling interval = 50 us, sampling frequency (1 signal) = 20 kHz
 									startCommand += '50 us screen width = 20000 us';
 									break;
 							case '10':	// screen width = 16 ms => horizontal frequency = 60 Hz, 388 samples per screen => sampling interval = 43 us, sampling frequency (1 signal) = 23,2 kHz
-  								startCommand += '43 us screen width = 16667 us'; 
+  									startCommand += '43 us screen width = 16667 us';
 									break;
-              case '11':	// screen width = 10 ms => horizontal frequency = 100 Hz, 400 samples per screen => sampling interval = 25 us, sampling frequency (single signal) = 40 kHz
-                  startCommand += '25 us screen width = 10000 us';
+							case '11':	// screen width = 10 ms => horizontal frequency = 100 Hz, 400 samples per screen => sampling interval = 25 us, sampling frequency (single signal) = 40 kHz
+  									startCommand += '25 us screen width = 10000 us';
 									break;
 							case '12':	// screen width = 5 ms => horizontal frequency = 200 Hz, 385 samples per screen => sampling interval = 13 us, sampling frequency = 76,9 kHz
-                  startCommand += '13 us screen width = 5000 us'; 
+  									startCommand += '13 us screen width = 5000 us';
 									break;
 
-              // ESP32 can not sample faster than 150 kHz, we can only reduce the number of samples per screen
+							// ESP32 can not sample faster than 150 kHz, we can only reduce the number of samples per screen
           
-              case '13':	// screen width = 2 ms => horizontal frequency = 500 Hz, 372 samples per screen => sampling interval = 6 us, sampling frequency = 166,6 kHz
-                  startCommand += '7 us screen width = 2000 us'; 
+							case '13':	// screen width = 2 ms => horizontal frequency = 500 Hz, 372 samples per screen => sampling interval = 6 us, sampling frequency = 166,6 kHz
+  									startCommand += '7 us screen width = 2000 us';
 									break;
-              case '14':	// screen width = 1 ms => horizontal frequency = 1 kHz, 334 samples per screen => sampling interval = 3 us, sampling frequency = 333,3 kHz
-                  startCommand += '3 us screen width = 1000 us'; 
+							case '14':	// screen width = 1 ms => horizontal frequency = 1 kHz, 334 samples per screen => sampling interval = 3 us, sampling frequency = 333,3 kHz
+  									startCommand += '3 us screen width = 1000 us';
 									break;
 							case '15':	// screen width = 500 us => horizontal frequency = 2 kHz, 250 samples per screen => sampling interval = 2 us, sampling frequency = 500 kHz
-                  startCommand += '2 us screen width = 500 us'; 
+  									startCommand += '2 us screen width = 500 us';
 									break;
 							case '16':	// screen width = 200 us => horizontal frequency = 5 kHz, 200 samples per screen => sampling interval = 1 us, sampling frequency = 1 MHz
-                  startCommand += '1 us screen width = 200 us'; 
+  									startCommand += '1 us screen width = 200 us';
 									break;
-              case '17':	// screen width = 100 us => horizontal frequency = 10 kHz, 100 samples per screen => sampling interval = 1 us, sampling frequency = 1 MHz
-                  startCommand += '1 us screen width = 100 us'; 
+							case '17':	// screen width = 100 us => horizontal frequency = 10 kHz, 100 samples per screen => sampling interval = 1 us, sampling frequency = 1 MHz
+  									startCommand += '1 us screen width = 100 us';
 									break;
 						}
 						if (document.getElementById ('posTrigger').checked) startCommand += ' set positive slope trigger to ' + (document.getElementById ('analog').checked ? document.getElementById ('posTreshold').value : 1);
@@ -894,6 +907,7 @@
           // disable GPIO, analog/digital, trigger, frequency and start, enable stop
           document.getElementById ('gpio1').disabled = true;
           document.getElementById ('gpio2').disabled = true;
+          document.getElementById ('atten').disabled = true;
           document.getElementById ('analog').disabled = true;
           document.getElementById ('digital').disabled = true;
           document.getElementById ('posTrigger').disabled = true;
@@ -910,6 +924,7 @@
           // enable GPIO, analog/digital, trigger, frequency and start, disable stop
           document.getElementById ('gpio1').disabled = false;
           document.getElementById ('gpio2').disabled = false;
+          document.getElementById ('atten').disabled = false;
           document.getElementById ('analog').disabled = false;
           document.getElementById ('digital').disabled = false;
           document.getElementById ('posTrigger').disabled = false;
