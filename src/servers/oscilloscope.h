@@ -45,7 +45,7 @@
 
 
     // some ESP32 boards read analog values inverted, uncomment the following line to invert read values back again 
-    #define INVERT_ADC1_GET_RAW
+    // #define INVERT_ADC1_GET_RAW
 
     // some ESP32 boards have wI2S interface which improoves analog sampling (for a single signal), uncomment the following line if your bord has an I2S interface
     // #define USE_I2S_INTERFACE
@@ -1136,6 +1136,22 @@
                             return;  
               }
 
+              #if 1
+              // MH:   Add original project missing ADC1 initializations
+              // Note: ADC2 do not operate same time with WiFi
+
+              static const adc_atten_t       atten = ADC_ATTEN_DB_11;      // DB_0=0  DB_2_5=1  DB_6=2  DB_11=3  MAX=?
+              static const adc_bits_width_t  width = ADC_WIDTH_BIT_12;     // 12, 11, 10 or 9
+
+              Serial.printf ("[oscilloscope] configure ADC1");
+              #ifdef __DMESG__
+                dmesg ("[oscilloscope] configure ADC1.");
+              #endif // __DMESG__
+
+              adc1_config_width(width);
+              adc1_config_channel_atten(sharedMemory.adcchannel1, atten);
+              adc1_config_channel_atten(sharedMemory.adcchannel2, atten);
+              #endif // 1
 
           // GPIO to CHANNEL mapping depending on the board type: https://github.com/espressif/arduino-esp32/blob/master/boards.txt
           #elif CONFIG_IDF_TARGET_ESP32S2
