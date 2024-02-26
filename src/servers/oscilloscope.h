@@ -1091,7 +1091,7 @@
           *(cmdPart3++) = 0;
       }
       
-      // ToDo: Parse command line by tokenization instead of fixed character positions in format string
+      // ToDo (MH): Parse command line by tokenization instead of fixed character positions in format string
 
       // parse 1st part
       sharedMemory.gpio1 = sharedMemory.gpio2 = 255; // invalid GPIO
@@ -1141,23 +1141,6 @@
                   default:  webSocket->sendString (string ("[oscilloscope] can't analogRead GPIO ") + string (sharedMemory.gpio2) + (char *) "."); // send error also to javascript client
                             return;  
               }
-
-              #if 1
-              // MH:   Add original project missing ADC1 initializations
-              // Note: ADC2 do not operate same time with WiFi
-
-              adc_atten_t       atten = (adc_atten_t) attenuation;  // MH: ADC_ATTEN_DB_11 - DB_0=0  DB_2_5=1  DB_6=2  DB_11=3
-              adc_bits_width_t  width = ADC_WIDTH_BIT_12;           // MH: 12, 11, 10 or 9
-
-              Serial.printf ("[oscilloscope] configure ADC1");
-              #ifdef __DMESG__
-                dmesg ("[oscilloscope] configure ADC1.");
-              #endif // __DMESG__
-
-              adc1_config_width(width);
-              adc1_config_channel_atten(sharedMemory.adcchannel1, atten);
-              adc1_config_channel_atten(sharedMemory.adcchannel2, atten);
-              #endif // 1
 
           // GPIO to CHANNEL mapping depending on the board type: https://github.com/espressif/arduino-esp32/blob/master/boards.txt
           #elif CONFIG_IDF_TARGET_ESP32S2
@@ -1283,6 +1266,35 @@
               #error "Your board (CONFIG_IDF_TARGET) is not supported by oscilloscope.h"
           #endif
 
+          // MH:   Original project missing ADC1 initializations
+          // Note: ADC2 do not operate same time with WiFi
+
+          adc_atten_t       atten = (adc_atten_t) attenuation;  // MH: ADC_ATTEN_DB_11 - DB_0=0  DB_2_5=1  DB_6=2  DB_11=3
+          adc_bits_width_t  width = ADC_WIDTH_BIT_12;           // MH: 12, 11, 10 or 9
+
+          Serial.printf ("[oscilloscope] configure ADC1");
+          #ifdef __DMESG__
+            dmesg ("[oscilloscope] configure ADC1.");
+          #endif // __DMESG__
+
+          adc1_config_width(width);
+
+          if ( (0 <= sharedMemory.adcchannel2) && (sharedMemory.adcchannel2 < 255 ) ) {
+              static int adcchannel1 = -1;
+
+              if ( adcchannel1 != sharedMemory.adcchannel1 ) {
+                   adcchannel1  = sharedMemory.adcchannel1;
+                   adc1_config_channel_atten(sharedMemory.adcchannel1, atten);
+              }
+          }
+          if ( (0 <= sharedMemory.adcchannel2) && (sharedMemory.adcchannel2 < 255 ) ) {
+              static int adcchannel2 = -1;
+
+              if ( adcchannel2 != (int) sharedMemory.adcchannel2 ) {
+                   adcchannel2  = (int) sharedMemory.adcchannel2;
+                   adc1_config_channel_atten(sharedMemory.adcchannel2, atten);
+              }
+          }
       }
       
       // parse 2nd part
