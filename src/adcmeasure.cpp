@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include "driver/adc.h"       // to use adc1_get_raw instead of analogRead
 #include "adcmeasure.hpp"
-#include "INA.hpp"
 
 adc_atten_t       atten = ADC_ATTEN_DB_11;      // ADC_ATTEN_DB_11 - DB_0=0  DB_2_5=1  DB_6=2  DB_11=3
 adc_bits_width_t  width = ADC_WIDTH_BIT_12;     // 12, 11, 10 or 9
@@ -91,10 +90,4 @@ int16_t  ADCmeasure::gpio( int gpio, int average )
     #endif
 
     return measure( adc1channel, average );
-}
-
-
-int  ADCmeasure::ina( int arg )
-{
-
 }
