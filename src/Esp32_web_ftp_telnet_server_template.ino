@@ -17,6 +17,7 @@
 
 */
 
+#include <task.h>
 #include <WiFi.h>
 // --- PLEASE MODIFY THIS FILE FIRST! --- This is where you can configure your network credentials, which servers will be included, etc ...
 #include "Esp32_servers_config.h"
@@ -324,10 +325,42 @@ void cronHandlerCallback (char *cronCommand) {
 }
 
 
+#define LED_SESSION_STACK_SIZE  configMINIMAL_STACK_SIZE  // Bytes not words!
+
+// https://www.freertos.org/a00125.html
+void vTaskLedBlink( void * pvParameters )
+{
+    Serial.print(  "LED blinker started on: Core ");
+    Serial.println( xPortGetCoreID() );
+    Serial.print(  "LED blinker task stack size: " );
+    Serial.println( LED_SESSION_STACK_SIZE );
+    Serial.print(  "LED blinker task priority:   ");
+    Serial.println( uxTaskPriorityGet(NULL) );
+    Serial.println();
+    
+    // initialize digital pin LED_BUILTIN as an output.
+    // pinMode(LED_BUILTIN, OUTPUT);
+
+    while ( 1 )
+    {
+        delay(1000);                      // wait for a second
+//      digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+        delay(1000);                      // wait for a second
+//      digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
+    }
+}
+
+
 void setup () {
+	delay (3000);  // Give VScode+PlatformIO time to open monitor terminal window's COM port
     Serial.begin (115200);
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
+    #ifdef LED_SERVER_CORE
+        BaseType_t led_taskCreated = xTaskCreatePinnedToCore (vTaskLedBlink, "LedBlink", LED_SESSION_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL, LED_SERVER_CORE);
+    #else
+        BaseType_t led_taskCreated = xTaskCreate (vTaskLedBlink, "LedBlink", LED_SESSION_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL);
+    #endif
 
     #ifdef FILE_SYSTEM
         // 1. Mount file system - this is the first thing to do since all the configuration files reside on the file system.
