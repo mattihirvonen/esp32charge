@@ -47,6 +47,11 @@
     #include "fsString.h"
     #include "driver/adc.h"       // to use adc1_get_raw instead of analogRead
 
+    #include "Arduino.h"
+    #include "Wire.h"
+    #include "adcmeasure.hpp"
+
+    ADCmeasure adcdata;
 
 #ifndef __TELNET_SERVER__
     #define __TELNET_SERVER__
@@ -532,10 +537,17 @@
 
           else if (argv0Is ("adc"))       {
                                               if (argc == 1)                                             return __adc__ (0);
+                                              #if CONFIG_IDF_TARGET_ESP32
                                               if (argc == 2) {
                                                   int n = atoi (argv [1]); if ((32 <= n) && (n <= 39))   return __adc__ (n);
                                               }
                                               return "Wrong syntax, use adc [<GPIO>]   (where 32 <= GPIO <= 39)";
+                                              #elif CONFIG_IDF_TARGET_ESP32S3
+                                              if (argc == 2) {
+                                                  int n = atoi (argv [1]); if ((0 <= n) && (n <= 10))    return __adc__ (n);
+                                              }
+                                              return "Wrong syntax, use adc [<GPIO>]   (where 0 <= GPIO <= 10)";
+                                              #endif
                                           }
                                           
           else if (argv0Is ("clear"))     { return argc == 1 ? __clear__ () : "Wrong syntax, use clear"; }
@@ -955,43 +967,25 @@
         }
 
         const char *__adc__ ( int gpio1 ) {
-            char s [100];
-            adc1_channel_t  adcchannel1;
 
-            switch (gpio1) {
-                  // ADC1
-                  case 36: adcchannel1 = ADC1_CHANNEL_0; break;
-                  case 37: adcchannel1 = ADC1_CHANNEL_1; break;
-                  case 38: adcchannel1 = ADC1_CHANNEL_2; break;
-                  case 39: adcchannel1 = ADC1_CHANNEL_3; break;
-                  case 32: adcchannel1 = ADC1_CHANNEL_4; break;
-                  case 33: adcchannel1 = ADC1_CHANNEL_5; break;
-                  case 34: adcchannel1 = ADC1_CHANNEL_6; break;
-                  case 35: adcchannel1 = ADC1_CHANNEL_7; break;
-                  // other GPIOs do not have ADC
-                  default:  sprintf( s, "[adc] can't analogRead GPIO %i", gpio1 );
-                            sendTelnet ( s ); // send error
-                            return "";  
+            // Mittaus: R=0.1 ohm, 3A -> 0.3V - gain 5.1 -> abt 1.53V (rounding error 2%)
+            // ADC scale:
+            // - 1192 abt 1020 mV -> 1167 abt 1.000 V
+            // - 1800 abt 1500 mV
+
+            char s[64];
+
+            #define AVERAGE 16
+
+            int adcvalue = adcdata.gpio( gpio1, AVERAGE );
+            int mA       = ((1000 * adcvalue) / 1167) * 2;
+
+            if ( adcvalue != ERROR_ADC ) {
+              snprintf( s, sizeof(s), "gpio %i: adc = %i   %i.%02i A", gpio1, adcvalue, mA/1000, ((mA % 1000) / 10) );
             }
-            adc_atten_t       atten = ADC_ATTEN_DB_11;      // ADC_ATTEN_DB_11 - DB_0=0  DB_2_5=1  DB_6=2  DB_11=3
-            adc_bits_width_t  width = ADC_WIDTH_BIT_12;     // 12, 11, 10 or 9
-
-            adc1_config_width(width);
-            adc1_config_channel_atten(adcchannel1, atten);
-
-            // ADC: 3A -> 0.3V -> 1.5V # 1800 abt 1500 mV
-
-            #define COUNT 16
-
-            int average = 0;  
-            for (int i = 0; i < COUNT; i++ ) {
-              average += adc1_get_raw( adcchannel1 );
+            else {
+              sniprintf( s, sizeof(s), "ERROR [adc] conversion on gpio %i", gpio1 );
             }
-            average /= COUNT;
-
-            int mA = average * 2;
-
-            sprintf( s, "adc[%i] = %i  %i.%02i A", gpio1, average, mA/1000, ((mA % 1000) / 10) );
             if (sendTelnet (s) <= 0) return "sendTelnet";
             return "";
         }
