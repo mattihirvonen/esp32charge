@@ -52,8 +52,10 @@
     #include "adcmeasure.hpp"
     #include "INA.h"
 
-    ADCmeasure    adcdata;
-    extern INA219 *pINA;
+    ADCmeasure      adcdata;
+    extern INA219  *pINA;
+    extern int64_t  mAs;          // Charge in milli ampere seconds
+    extern int      mA1s;
 
 
 #ifndef __TELNET_SERVER__
@@ -1043,23 +1045,11 @@
 
         const char *__charge__ ( int arg, char *arg1, char *arg2 ) {
 
-            // Trick: "scale" notify wiring resistances im measurement circuit
-            // There is
-            // - 0.100 ohm current shunt resistor parallel with
-            // - (0.32 + 0.1) ohm measurement circuit where
-            // - 0.32 ohm is wiring resistance (4m wire 0.22 mm2) and series with
-            // - 0.1  ohm current shunt resistor in Adafruit INA219 module
-
-            static int Rshunt = 100000;  // micro ohm
-            static int scale  = 6122;    // normalize to 1000
-
             char s[64];
-            int  uV   = pINA->shunt_uV();
-            int  mA   = uV / (Rshunt / 1000);
-            char sign = mA >= 0 ? '+' : '-';
+            char sign = mA1s >= 0 ? '+' : '-';
+            int  mA   = abs( mA1s );
 
-            mA = abs( (mA * scale) / 1000 );
-            snprintf( s, sizeof(s), "charge = %c%i.%03i A", sign, mA / 1000, mA % 1000 );
+            snprintf( s, sizeof(s), "charge = %c%i.%03i  %lld", sign, mA / 1000, mA % 1000, mAs );
             if (sendTelnet (s) <= 0) return "sendTelnet";
             return "";
         }

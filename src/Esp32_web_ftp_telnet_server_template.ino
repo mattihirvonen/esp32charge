@@ -26,8 +26,10 @@
 // --- PLEASE MODIFY THIS FILE FIRST! --- This is where you can configure your network credentials, which servers will be included, etc ...
 #include "Esp32_servers_config.h"
 
-INA219  INA( INA219_ADDRESS );
-INA219 *pINA = &INA;
+INA219   INA( INA219_ADDRESS );
+INA219  *pINA = &INA;
+int64_t  mAs  = 0;       // Charge in milli ampere seconds
+int      mA1s = 0;
 
 
                     // ----- USED FOR DEMONSTRATION ONLY, YOU MAY FREELY DELETE THE FOLLOWING DEFINITIONS -----
@@ -335,8 +337,12 @@ void cronHandlerCallback (char *cronCommand) {
 #define LED_SESSION_STACK_SIZE  2048  // Bytes not words!  configMINIMAL_STACK_SIZE
 
 // https://www.freertos.org/a00125.html
-void vTaskLedBlink( void * pvParameters )
+void vTaskMeasure( void * pvParameters )
 {
+    #define SAMPLE_PERIOD  100   // [ms]
+
+    static int ledstate = 0;
+
     Serial.print(  "LED blinker started on: Core ");
     Serial.println( xPortGetCoreID() );
     Serial.print(  "LED blinker task stack size: " );
@@ -348,12 +354,35 @@ void vTaskLedBlink( void * pvParameters )
     // initialize digital pin LED_BUILTIN as an output.
     // pinMode(LED_BUILTIN, OUTPUT);
 
+    INA.reset();   // Set INA mode 16 samples
+
     while ( 1 )
     {
-        delay(1000);                      // wait for a second
-        digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-        delay(1000);                      // wait for a second
-        digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
+        // Trick: "scale" notify wiring resistances im measurement circuit
+        // There is
+        // - 0.100 ohm current shunt resistor parallel with
+        // - (0.32 + 0.1) ohm measurement circuit where
+        // - 0.32 ohm is wiring resistance (4m wire 0.22 mm2) and series with
+        // - 0.1  ohm current shunt resistor in Adafruit INA219 module
+
+        static int Rshunt = 100000;  // micro ohm
+        static int scale  = 6122;    // normalize to 1000
+               int sum    = 0;
+
+        for ( int i = 0; i < 10; i++ )
+        {
+            int  uV = pINA->shunt_uV();
+            int  mA = uV / (Rshunt / 1000);
+
+            mA   = (mA * scale) / 1000;
+            sum += mA;
+            delay(SAMPLE_PERIOD);
+        }
+        mA1s  = sum / 10;
+        mAs  += mA1s;
+
+        if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
+        else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)
     }
 }
 
@@ -364,14 +393,14 @@ void setup () {
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
     #ifdef LED_SERVER_CORE
-        BaseType_t led_taskCreated = xTaskCreatePinnedToCore (vTaskLedBlink, "LedBlink", LED_SESSION_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL, LED_SERVER_CORE);
+        BaseType_t led_taskCreated = xTaskCreatePinnedToCore (vTaskMeasure, "Measure", LED_SESSION_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL, LED_SERVER_CORE);
     #else
-        BaseType_t led_taskCreated = xTaskCreate (vTaskLedBlink, "LedBlink", LED_SESSION_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL);
+        BaseType_t led_taskCreated = xTaskCreate (vTaskMeasure, "Measure", LED_SESSION_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL);
     #endif
 
     Wire.begin();
     if ( INA.begin() )  { Serial.println("I2C connect to INA ok");     }
-    else                   { Serial.println("could not I2C connect to INA. Fix and Reboot"); }
+    else                { Serial.println("could not I2C connect to INA. Fix and Reboot"); }
     Serial.println();
 
     #ifdef FILE_SYSTEM
