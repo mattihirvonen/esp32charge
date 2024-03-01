@@ -566,6 +566,19 @@
                                               return "INA fail";
                                           }
 
+          else if (argv0Is ("charge"))    {
+                                              if (argc == 1) {
+                                                return __charge__ (0, 0, 0);
+                                              }
+                                              if (argc == 2) {
+                                                return __charge__ (1, argv[1], 0);
+                                              }
+                                              if (argc == 3) {
+                                                return __charge__ (2, argv[1], argv[2]);
+                                              }
+                                              return "charge command  fail";
+                                          }
+
           else if (argv0Is ("clear"))     { return argc == 1 ? __clear__ () : "Wrong syntax, use clear"; }
                                           
           else if (argv0Is ("uname"))     { return argc == 1 ? __uname__ () : "Wrong syntax, use uname"; }
@@ -1025,6 +1038,29 @@
             }
             if (sendTelnet (s) <= 0) return "sendTelnet";
 
+            return "";
+        }
+
+        const char *__charge__ ( int arg, char *arg1, char *arg2 ) {
+
+            // Trick: "scale" notify wiring resistances im measurement circuit
+            // There is
+            // - 0.100 ohm current shunt resistor parallel with
+            // - (0.32 + 0.1) ohm measurement circuit where
+            // - 0.32 ohm is wiring resistance (4m wire 0.22 mm2) and series with
+            // - 0.1  ohm current shunt resistor in Adafruit INA219 module
+
+            static int Rshunt = 100000;  // micro ohm
+            static int scale  = 6122;    // normalize to 1000
+
+            char s[64];
+            int  uV   = pINA->shunt_uV();
+            int  mA   = uV / (Rshunt / 1000);
+            char sign = mA >= 0 ? '+' : '-';
+
+            mA = abs( (mA * scale) / 1000 );
+            snprintf( s, sizeof(s), "charge = %c%i.%03i A", sign, mA / 1000, mA % 1000 );
+            if (sendTelnet (s) <= 0) return "sendTelnet";
             return "";
         }
 
