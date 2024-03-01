@@ -1046,10 +1046,13 @@
         const char *__charge__ ( int arg, char *arg1, char *arg2 ) {
 
             char s[64];
-            char sign = mA1s >= 0 ? '+' : '-';
-            int  mA   = abs( mA1s );
+            int  As    = mAs;
+            char sign  = As   >= 0 ? '+' : '-';
+            char sign1 = mA1s >= 0 ? '+' : '-';
+            int  mA    = abs( mA1s );
 
-            snprintf( s, sizeof(s), "charge = %c%i.%03i  %lld", sign, mA / 1000, mA % 1000, mAs );
+            As = abs( As );
+            snprintf( s, sizeof(s), "charge = %c%i.%03i  %c%i.%03i", sign1, mA / 1000, mA % 1000, sign, As / 1000, As % 1000 );
             if (sendTelnet (s) <= 0) return "sendTelnet";
             return "";
         }
