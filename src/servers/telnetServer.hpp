@@ -51,10 +51,8 @@
     #include "Wire.h"
     #include "adcmeasure.hpp"
     #include "INA.h"
-    #include "INA226.h"
 
     ADCmeasure    adcdata;
-    INA226        ina226( 0x40 );
     extern INA219 *pINA;
 
 
