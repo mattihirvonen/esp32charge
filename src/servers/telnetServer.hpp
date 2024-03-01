@@ -50,8 +50,13 @@
     #include "Arduino.h"
     #include "Wire.h"
     #include "adcmeasure.hpp"
+    #include "INA.h"
+    #include "INA226.h"
 
-    ADCmeasure adcdata;
+    ADCmeasure    adcdata;
+    INA226        ina226( 0x40 );
+    extern INA219 *pINA;
+
 
 #ifndef __TELNET_SERVER__
     #define __TELNET_SERVER__
@@ -549,7 +554,20 @@
                                               return "Wrong syntax, use adc [<GPIO>]   (where 0 <= GPIO <= 10)";
                                               #endif
                                           }
-                                          
+
+          else if (argv0Is ("ina"))       {
+                                              if (argc == 1) {
+                                                return __ina__ (0, 0, 0);
+                                              }
+                                              if (argc == 2) {
+                                                return __ina__ (1, argv[1], 0);
+                                              }
+                                              if (argc == 3) {
+                                                return __ina__ (2, argv[1], argv[2]);
+                                              }
+                                              return "INA fail";
+                                          }
+
           else if (argv0Is ("clear"))     { return argc == 1 ? __clear__ () : "Wrong syntax, use clear"; }
                                           
           else if (argv0Is ("uname"))     { return argc == 1 ? __uname__ () : "Wrong syntax, use uname"; }
@@ -987,6 +1005,28 @@
               sniprintf( s, sizeof(s), "ERROR [adc] conversion on gpio %i", gpio1 );
             }
             if (sendTelnet (s) <= 0) return "sendTelnet";
+            return "";
+        }
+
+        const char *__ina__ ( int arg, char *arg1, char *arg2 ) {
+
+            char     s[64];
+            uint8_t  reg = 0;
+            uint16_t value = 0;
+            
+            if ( arg >= 1) {  reg   = strtol( arg1, NULL, 16 );  }
+            if ( arg >= 2) {  value = strtol( arg2, NULL, 16 );  }
+
+            int16_t  inavalue = pINA->reg( arg, reg, value );
+
+            if ( inavalue != ERROR_ADC ) {
+              snprintf( s, sizeof(s), "ina [%i] = %04x", reg, inavalue );
+            }
+            else {
+              sniprintf( s, sizeof(s), "ERROR [INA] access" );
+            }
+            if (sendTelnet (s) <= 0) return "sendTelnet";
+
             return "";
         }
 

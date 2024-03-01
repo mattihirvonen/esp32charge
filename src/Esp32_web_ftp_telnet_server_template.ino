@@ -17,10 +17,17 @@
 
 */
 
+#include "Arduino.h"
+#include <Wire.h>
+#include "INA.h"
+
 #include <task.h>
 #include <WiFi.h>
 // --- PLEASE MODIFY THIS FILE FIRST! --- This is where you can configure your network credentials, which servers will be included, etc ...
 #include "Esp32_servers_config.h"
+
+INA219  INA( INA219_ADDRESS );
+INA219 *pINA = &INA;
 
 
                     // ----- USED FOR DEMONSTRATION ONLY, YOU MAY FREELY DELETE THE FOLLOWING DEFINITIONS -----
@@ -28,8 +35,8 @@
                     measurements freeHeap (60);                 // measure free heap each minute for possible memory leaks
                     measurements freeBlock (60);                // measure max free heap block each minute for possible heap-related problems
                     measurements httpRequestCount (60);         // measure how many web connections arrive each minute
-                    #undef LED_BUILTIN
-                    #define LED_BUILTIN 2                       // built-in led blinking is used in examples 01, 03 and 04
+//                  #undef LED_BUILTIN
+//                  #define LED_BUILTIN 2                       // built-in led blinking is used in examples 01, 03 and 04
 
  
 // HTTP request handler example - if you don't need to handle HTTP requests yourself just delete this function and pass NULL to httpSrv instead
@@ -325,7 +332,7 @@ void cronHandlerCallback (char *cronCommand) {
 }
 
 
-#define LED_SESSION_STACK_SIZE  configMINIMAL_STACK_SIZE  // Bytes not words!
+#define LED_SESSION_STACK_SIZE  2048  // Bytes not words!  configMINIMAL_STACK_SIZE
 
 // https://www.freertos.org/a00125.html
 void vTaskLedBlink( void * pvParameters )
@@ -361,6 +368,11 @@ void setup () {
     #else
         BaseType_t led_taskCreated = xTaskCreate (vTaskLedBlink, "LedBlink", LED_SESSION_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL);
     #endif
+
+    Wire.begin();
+    if ( INA.begin() )  { Serial.println("I2C connect to INA ok");     }
+    else                   { Serial.println("could not I2C connect to INA. Fix and Reboot"); }
+    Serial.println();
 
     #ifdef FILE_SYSTEM
         // 1. Mount file system - this is the first thing to do since all the configuration files reside on the file system.
