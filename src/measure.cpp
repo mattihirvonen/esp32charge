@@ -21,16 +21,17 @@ static int _mA;
 static int _mAs = 0;           // Charge in milli ampere seconds
 static int _mA1s;              // Average current measurement over 1 second period
 static int _Rshunt = 100000;   // micro ohm
-static int _scale  = 1000;     // normalize to 1000
+static int _scale  = 100;      // normalize to 100
+static int _efficiency = 80;   // charging efficiency [%]
 
-// Trick: Set "scale" to 6122
+// Trick: Set "scale" to 612
 // Notify wiring resistances in measurement circuit
 // There is
 // - 0.100 ohm current shunt resistor parallel with
 // - (0.32 + 0.1) ohm measurement circuit where
-// - 0.32 ohm is wiring resistance (4m wire 0.22 mm2) and series with
+// - 0.32 ohm is wiring resistance (4m wire 0.22 mm2) series with
 // - 0.1  ohm current shunt resistor in Adafruit INA219 module
-// --> scale = 6122
+// --> scale = 612
 //
 
 ////////////////////////////////////////////////////////
@@ -83,7 +84,8 @@ void vTaskMeasure( void * pvParameters )
 
     while ( 1 )
     {
-        int sum = 0;
+        int sum_mA1s = 0;
+        int sum_mAs  = 0;
 
         for ( int i = 0; i < 10; i++ )
         {
@@ -93,13 +95,18 @@ void vTaskMeasure( void * pvParameters )
             // Perform action here. xWasDelayed value can be used to determine
             // whether a deadline was missed if the code here took too long.
 
-            int mA = INA.shunt_uV() / ( _Rshunt / 1000 );
+            int mA_charge,  mA = INA.shunt_uV() / ( _Rshunt / 1000 );
 
-            _mA  = (mA * _scale ) / 1000;
-            sum += _mA;
+            _mA = (mA * _scale ) / 100;
+
+            if ( _mA >=0 ) {  mA_charge = ( _mA * _efficiency ) / 100;  }    // Charging
+            else           {  mA_charge =   _mA;                        }    // Discharging
+
+            sum_mA1s += _mA;         // Raw charging current (measure with DMM)
+            sum_mAs  += mA_charge;   // Charging with efficiency
         }
-        _mA1s  =  sum / 10;
-        _mAs  += _mA1s;
+        _mA1s  = sum_mA1s / 10;
+        _mAs  += sum_mAs  / 10;
 
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
         else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)
@@ -107,9 +114,9 @@ void vTaskMeasure( void * pvParameters )
 }
 
 
-void MEASURE::begin( int scale_1000 )
+void MEASURE::begin( int scale_100 )
 {
-    _scale = scale_1000;
+    _scale = scale_100;
 
     Wire.begin();
     if ( INA.begin() )  { Serial.println("I2C connect to INA ok");     }
@@ -143,8 +150,31 @@ int MEASURE::setRshunt( int micro_ohm )
 }
 
 
-int MEASURE::setScale( int scale_1000 )
+int MEASURE::setScale( int scale_100 )
 {
-    _scale = scale_1000;
+    _scale = scale_100;
     return _scale;
+}
+
+
+//Set battery charge state
+int MEASURE::setAh( int Ah )
+{
+    _mAs = 1000 * (3600 * Ah);
+    return Ah;
+}
+
+
+// Set charging operating efficiency [%]
+int MEASURE::setEfficiency( int percent )
+{
+    _efficiency = percent;
+    return _efficiency;
+}
+
+
+// Get charging operating efficiency [%]
+int MEASURE::getEfficiency( void )
+{
+    return _efficiency;
 }

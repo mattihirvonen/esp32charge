@@ -11,14 +11,17 @@ class MEASURE
         explicit MEASURE();
         ~MEASURE();
 
-        void  begin( int scale_1000 );
+        void  begin( int scale_100 );
 
         int   mA();
         int   mAs();
         int   mA1s();
 
         int   setRshunt( int micro_ohm );
-        int   setScale( int scale_1000 );
+        int   setScale( int scale_100 );
+        int   setAh( int Ah );
+        int   setEfficiency( int percent );
+        int   getEfficiency( void );
 
     private:
 

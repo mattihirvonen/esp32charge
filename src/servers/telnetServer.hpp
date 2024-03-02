@@ -1037,8 +1037,8 @@
         const char *__charge__ ( int arg, char *arg1, char *arg2 ) {
 
             char s[64];
-            int  mA1s  = Measure.mA1s();
-            int  mAs   = Measure.mAs();
+            int  mA1s  = Measure.mA1s();   // Charging current without efficiency
+            int  mAs   = Measure.mAs();    // Charging sum with efficiency
             int  mAh   = mAs / 3600;
             char sign1 = mA1s >= 0 ? '+' : '-';
             char sign  = mAs  >= 0 ? '+' : '-';
