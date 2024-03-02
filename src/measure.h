@@ -12,9 +12,15 @@ class MEASURE
         ~MEASURE();
         
         void  init();
+        int   mA();
+        int   mAs();
+        int   mA1s();
+
+        int   setRshunt( int micro_ohm );
+        int   setScale( int promille );
 
     private:
-    
+
 };
 
 #endif // _LIB_MEASURE_

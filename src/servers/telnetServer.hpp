@@ -49,13 +49,16 @@
 
     #include "Arduino.h"
     #include "Wire.h"
-    #include "adcmeasure.hpp"
+    #include "adcmeasure.h"
     #include "INA.h"
+    #include "measure.h"
 
-    ADCmeasure      adcdata;
-    extern INA219  *pINA;
-    extern int64_t  mAs;          // Charge in milli ampere seconds
-    extern int      mA1s;
+    // External object(s)
+    extern INA219    INA;
+    extern MEASURE   Measure;
+
+    // Public object(s)
+    ADCPU     ADC;
 
 
 #ifndef __TELNET_SERVER__
@@ -556,29 +559,17 @@
                                           }
 
           else if (argv0Is ("ina"))       {
-                                              if (argc == 1) {
-                                                return __ina__ (0, 0, 0);
-                                              }
-                                              if (argc == 2) {
-                                                return __ina__ (1, argv[1], 0);
-                                              }
-                                              if (argc == 3) {
-                                                return __ina__ (2, argv[1], argv[2]);
-                                              }
+                                              if (argc == 1) {  return __ina__ (0, 0, 0);              }
+                                              if (argc == 2) {  return __ina__ (1, argv[1], 0);        }
+                                              if (argc == 3) {  return __ina__ (2, argv[1], argv[2]);  }
                                               return "INA fail";
                                           }
 
           else if (argv0Is ("charge"))    {
-                                              if (argc == 1) {
-                                                return __charge__ (0, 0, 0);
-                                              }
-                                              if (argc == 2) {
-                                                return __charge__ (1, argv[1], 0);
-                                              }
-                                              if (argc == 3) {
-                                                return __charge__ (2, argv[1], argv[2]);
-                                              }
-                                              return "charge command  fail";
+                                              if (argc == 1) {  return __charge__ (0, 0, 0);              }
+                                              if (argc == 2) {  return __charge__ (1, argv[1], 0);        }
+                                              if (argc == 3) {  return __charge__ (2, argv[1], argv[2]);  }
+                                              return "charge command fail";
                                           }
 
           else if (argv0Is ("clear"))     { return argc == 1 ? __clear__ () : "Wrong syntax, use clear"; }
@@ -1008,7 +999,7 @@
 
             #define AVERAGE 16
 
-            int adcvalue = adcdata.gpio( gpio1, AVERAGE );
+            int adcvalue = ADC.gpio( gpio1, AVERAGE );
             int mA       = ((1000 * adcvalue) / 1167) * 2;
 
             if ( adcvalue != ERROR_ADC ) {
@@ -1030,7 +1021,7 @@
             if ( arg >= 1) {  reg   = strtol( arg1, NULL, 16 );  }
             if ( arg >= 2) {  value = strtol( arg2, NULL, 16 );  }
 
-            int16_t  inavalue = pINA->reg( arg, reg, value );
+            int16_t  inavalue = INA.reg( arg, reg, value );
 
             if ( inavalue != ERROR_ADC ) {
               snprintf( s, sizeof(s), "ina [%i] = %04x", reg, inavalue );
@@ -1046,13 +1037,17 @@
         const char *__charge__ ( int arg, char *arg1, char *arg2 ) {
 
             char s[64];
-            int  As    = mAs;
-            char sign  = As   >= 0 ? '+' : '-';
+            int  mA1s  = Measure.mA1s();
+            int  mAs   = Measure.mAs();
+            int  mAh   = mAs / 3600;
             char sign1 = mA1s >= 0 ? '+' : '-';
-            int  mA    = abs( mA1s );
+            char sign  = mAs  >= 0 ? '+' : '-';
 
-            As = abs( As );
-            snprintf( s, sizeof(s), "charge = %c%i.%03i  %c%i.%03i", sign1, mA / 1000, mA % 1000, sign, As / 1000, As % 1000 );
+            mA1s = abs( mA1s );
+            mAs  = abs( mAs);
+            mAh  = abs( mAh );
+            snprintf( s, sizeof(s), "charge = %c%i.%03i  %c%i.%03i  %c%i.%03i",
+                      sign1, mA1s / 1000, mA1s % 1000, sign, mAs / 1000, mAs % 1000, sign, mAh / 1000, mAh % 1000 );
             if (sendTelnet (s) <= 0) return "sendTelnet";
             return "";
         }

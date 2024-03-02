@@ -1,4 +1,7 @@
 
+//
+// NOTE: 0x7fffffff [mAs] equals 596.5 [Ah]
+//
 #include <stdint.h>
 #include "Arduino.h"
 #include <Wire.h>
@@ -10,15 +13,22 @@
   #define   tskNORMAL_PRIORITY  2       // Task's default priority is 1
 //#define   TASK_MEASURE_CORE   1       // loop() run on core 1, other tasks default is 0
 
-INA219   INA( INA219_ADDRESS );
-INA219  *pINA = &INA;
+// Public object(s)
+INA219  INA( INA219_ADDRESS );
 
-MEASURE  Measure;
-MEASURE *pMeasure = &Measure;
+// Local variables 
+static int _mA;
+static int _mAs = 0;           // Charge in milli ampere seconds
+static int _mA1s;              // Average current measurement over 1 second period
+static int _Rshunt = 100000;   // micro ohm
+static int _scale  = 6122;     // normalize to 1000
 
-// Public variables 
-int64_t  mAs  = 0;       // Charge in milli ampere seconds
-int      mA1s = 0;       // Average current measurement over 1 second period
+// Trick: "scale" notify wiring resistances im measurement circuit
+// There is
+// - 0.100 ohm current shunt resistor parallel with
+// - (0.32 + 0.1) ohm measurement circuit where
+// - 0.32 ohm is wiring resistance (4m wire 0.22 mm2) and series with
+// - 0.1  ohm current shunt resistor in Adafruit INA219 module
 
 ////////////////////////////////////////////////////////
 //
@@ -63,23 +73,14 @@ void vTaskMeasure( void * pvParameters )
     // initialize digital pin LED_BUILTIN as an output.
     // pinMode(LED_BUILTIN, OUTPUT);
 
-    pINA->reset();   // Set INA mode 16 samples
+    INA.reset();   // Set INA mode 16 samples
 
     // Initialise the xLastWakeTime variable with the current time.
     xLastWakeTime = xTaskGetTickCount ();
 
     while ( 1 )
     {
-        // Trick: "scale" notify wiring resistances im measurement circuit
-        // There is
-        // - 0.100 ohm current shunt resistor parallel with
-        // - (0.32 + 0.1) ohm measurement circuit where
-        // - 0.32 ohm is wiring resistance (4m wire 0.22 mm2) and series with
-        // - 0.1  ohm current shunt resistor in Adafruit INA219 module
-
-        static int Rshunt = 100000;  // micro ohm
-        static int scale  = 6122;    // normalize to 1000
-               int sum    = 0;
+        int sum = 0;
 
         for ( int i = 0; i < 10; i++ )
         {
@@ -89,14 +90,13 @@ void vTaskMeasure( void * pvParameters )
             // Perform action here. xWasDelayed value can be used to determine
             // whether a deadline was missed if the code here took too long.
 
-            int  uV = pINA->shunt_uV();
-            int  mA = uV / (Rshunt / 1000);
+            int mA = INA.shunt_uV() / ( _Rshunt / 1000 );
 
-            mA   = (mA * scale) / 1000;
-            sum += mA;
+            _mA  = (mA * _scale ) / 1000;
+            sum += _mA;
         }
-        mA1s  = sum / 10;
-        mAs  += mA1s;
+        _mA1s  =  sum / 10;
+        _mAs  += _mA1s;
 
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
         else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)
@@ -107,8 +107,8 @@ void vTaskMeasure( void * pvParameters )
 void MEASURE::init( void )
 {
     Wire.begin();
-    if ( pINA->begin() )  { Serial.println("I2C connect to INA ok");     }
-    else                  { Serial.println("could not I2C connect to INA. Fix and Reboot"); }
+    if ( INA.begin() )  { Serial.println("I2C connect to INA ok");     }
+    else                { Serial.println("could not I2C connect to INA. Fix and Reboot"); }
     Serial.println();
 
     #ifdef TASK_MEASURE_CORE
@@ -116,4 +116,30 @@ void MEASURE::init( void )
     #else
         BaseType_t led_taskCreated = xTaskCreate (vTaskMeasure, "Measure", MEASURE_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL);
     #endif
+}
+
+
+int MEASURE::mA( void )
+{   return _mA;  }
+
+
+int MEASURE::mAs( void )
+{   return _mAs;  }
+
+
+int MEASURE::mA1s( void )
+{   return _mA1s;  }
+
+
+int MEASURE::setRshunt( int micro_ohm )
+{
+    _Rshunt = micro_ohm;
+    return _Rshunt;
+}
+
+
+int MEASURE::setScale( int promille )
+{
+    _scale = promille;
+    return _scale;
 }

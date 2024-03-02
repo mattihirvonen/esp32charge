@@ -6,11 +6,9 @@
 
 #define  ERROR_ADC  0xffff
 
-class ADCmeasure {
+class ADCPU {
 
     public:
-
-        int        muuttuja;
 
         void       init();
         int16_t    measure( adc1_channel_t adc1channel, int average );

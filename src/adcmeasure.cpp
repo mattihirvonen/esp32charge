@@ -2,7 +2,7 @@
 #include <arduino.h>          // Serial.print()
 #include <stdint.h>
 #include "driver/adc.h"       // to use adc1_get_raw instead of analogRead
-#include "adcmeasure.hpp"
+#include "adcmeasure.h"
 
 adc_atten_t       atten = ADC_ATTEN_DB_11;      // ADC_ATTEN_DB_11 - DB_0=0  DB_2_5=1  DB_6=2  DB_11=3
 adc_bits_width_t  width = ADC_WIDTH_BIT_12;     // 12, 11, 10 or 9
@@ -10,7 +10,7 @@ adc_bits_width_t  width = ADC_WIDTH_BIT_12;     // 12, 11, 10 or 9
 // Scale:
 // - atten DB_11 value 1192 equals 1020 mv
 
-int16_t  ADCmeasure::measure( adc1_channel_t adc1channel, int average )
+int16_t  ADCPU::measure( adc1_channel_t adc1channel, int average )
 {
     int sum = 0;
 
@@ -28,7 +28,7 @@ int16_t  ADCmeasure::measure( adc1_channel_t adc1channel, int average )
 }
 
 
-void ADCmeasure::print_error( int gpio )
+void ADCPU::print_error( int gpio )
 {
     char s[64];
 
@@ -38,7 +38,7 @@ void ADCmeasure::print_error( int gpio )
 }
 
 
-int16_t  ADCmeasure::gpio( int gpio, int average )
+int16_t  ADCPU::gpio( int gpio, int average )
 {
     adc1_channel_t  adc1channel;
 
@@ -86,7 +86,7 @@ int16_t  ADCmeasure::gpio( int gpio, int average )
        }
 
     #else
-        #error "Your board (CONFIG_IDF_TARGET) is not supported by ADCmeasure"
+        #error "Your board (CONFIG_IDF_TARGET) is not supported by ADCPU"
     #endif
 
     return measure( adc1channel, average );

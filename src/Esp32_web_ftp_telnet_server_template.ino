@@ -25,8 +25,8 @@
 // --- PLEASE MODIFY THIS FILE FIRST! --- This is where you can configure your network credentials, which servers will be included, etc ...
 #include "Esp32_servers_config.h"
 
-extern MEASURE *pMeasure;
-//extern INA219  *pINA;
+// Public object(s)
+MEASURE Measure;
 
 
                     // ----- USED FOR DEMONSTRATION ONLY, YOU MAY FREELY DELETE THE FOLLOWING DEFINITIONS -----
@@ -337,7 +337,7 @@ void setup () {
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
     // Start current measurement task
-    pMeasure->init();
+    Measure.init();
 
     #ifdef FILE_SYSTEM
         // 1. Mount file system - this is the first thing to do since all the configuration files reside on the file system.
