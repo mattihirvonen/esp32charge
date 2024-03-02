@@ -21,14 +21,17 @@ static int _mA;
 static int _mAs = 0;           // Charge in milli ampere seconds
 static int _mA1s;              // Average current measurement over 1 second period
 static int _Rshunt = 100000;   // micro ohm
-static int _scale  = 6122;     // normalize to 1000
+static int _scale  = 1000;     // normalize to 1000
 
-// Trick: "scale" notify wiring resistances im measurement circuit
+// Trick: Set "scale" to 6122
+// Notify wiring resistances in measurement circuit
 // There is
 // - 0.100 ohm current shunt resistor parallel with
 // - (0.32 + 0.1) ohm measurement circuit where
 // - 0.32 ohm is wiring resistance (4m wire 0.22 mm2) and series with
 // - 0.1  ohm current shunt resistor in Adafruit INA219 module
+// --> scale = 6122
+//
 
 ////////////////////////////////////////////////////////
 //
@@ -104,8 +107,10 @@ void vTaskMeasure( void * pvParameters )
 }
 
 
-void MEASURE::init( void )
+void MEASURE::begin( int scale_1000 )
 {
+    _scale = scale_1000;
+
     Wire.begin();
     if ( INA.begin() )  { Serial.println("I2C connect to INA ok");     }
     else                { Serial.println("could not I2C connect to INA. Fix and Reboot"); }
@@ -138,8 +143,8 @@ int MEASURE::setRshunt( int micro_ohm )
 }
 
 
-int MEASURE::setScale( int promille )
+int MEASURE::setScale( int scale_1000 )
 {
-    _scale = promille;
+    _scale = scale_1000;
     return _scale;
 }

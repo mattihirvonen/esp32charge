@@ -10,14 +10,15 @@ class MEASURE
     public:
         explicit MEASURE();
         ~MEASURE();
-        
-        void  init();
+
+        void  begin( int scale_1000 );
+
         int   mA();
         int   mAs();
         int   mA1s();
 
         int   setRshunt( int micro_ohm );
-        int   setScale( int promille );
+        int   setScale( int scale_1000 );
 
     private:
 

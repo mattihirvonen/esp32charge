@@ -337,7 +337,7 @@ void setup () {
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
     // Start current measurement task
-    Measure.init();
+    Measure.begin( 6122 );
 
     #ifdef FILE_SYSTEM
         // 1. Mount file system - this is the first thing to do since all the configuration files reside on the file system.
