@@ -88,7 +88,7 @@ void vTaskMeasure( void * pvParameters )
         int sum_mA1s = 0;
         int sum_mAs  = 0;
 
-        for ( int i = 0; i < 10; i++ )
+        for ( int i = 0; i < SAMPLES_PER_SECOND; i++ )
         {
             // Wait for the next cycle.
             xWasDelayed = xTaskDelayUntil( &xLastWakeTime, xFrequency );
