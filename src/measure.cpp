@@ -58,12 +58,13 @@ MEASURE::~MEASURE()
 // https://www.freertos.org/a00125.html
 void vTaskMeasure( void * pvParameters )
 {
-    #define SAMPLE_PERIOD  100  // [ms]
+    #define SAMPLES_PER_SECOND   20
+    #define SAMPLE_PERIOD       (1000 / SAMPLES_PER_SECOND )   // [ms]
 
     static int ledstate = 0;
 
     TickType_t        xLastWakeTime;
-    const TickType_t  xFrequency = SAMPLE_PERIOD;
+    const TickType_t  xFrequency = SAMPLE_PERIOD;   // in tick(s) [ms]
     BaseType_t        xWasDelayed;
 
     Serial.print(  "LED blinker started on: Core ");
@@ -105,8 +106,8 @@ void vTaskMeasure( void * pvParameters )
             sum_mA1s += _mA;         // Raw charging current (measure with DMM)
             sum_mAs  += mA_charge;   // Charging with efficiency
         }
-        _mA1s  = sum_mA1s / 10;
-        _mAs  += sum_mAs  / 10;
+        _mA1s  = sum_mA1s / SAMPLES_PER_SECOND;
+        _mAs  += sum_mAs  / SAMPLES_PER_SECOND;
 
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
         else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)
