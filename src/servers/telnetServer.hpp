@@ -53,10 +53,12 @@
     #include "adcmeasure.h"       // Object(s):  ADC
     #include "INA.h"              // Object(s):  INA
     #include "measure.h"          // Object(s):  MEASURE
+    //#include "util.h"           // Object(s):  UTIL
 
     // External object(s)
     extern INA219    INA;
     extern MEASURE   Measure;
+    //extern UTIL    Utils;
 
     // Public object(s)
     ADCPU     ADC;
@@ -545,18 +547,9 @@
                if (argv0Is ("help"))      { return argc == 1 ? __help__ (tcn) : "Wrong syntax, use help"; }
 
           else if (argv0Is ("adc"))       {
-                                              if (argc == 1)                                             return __adc__ (0);
-                                              #if CONFIG_IDF_TARGET_ESP32
-                                              if (argc == 2) {
-                                                  int n = atoi (argv [1]); if ((32 <= n) && (n <= 39))   return __adc__ (n);
-                                              }
-                                              return "Wrong syntax, use adc [<GPIO>]   (where 32 <= GPIO <= 39)";
-                                              #elif CONFIG_IDF_TARGET_ESP32S3
-                                              if (argc == 2) {
-                                                  int n = atoi (argv [1]); if ((0 <= n) && (n <= 10))    return __adc__ (n);
-                                              }
-                                              return "Wrong syntax, use adc [<GPIO>]   (where 0 <= GPIO <= 10)";
-                                              #endif
+                                              if (argc == 1) {  return __adc__ (0, 0);        }
+                                              if (argc == 2) {  return __adc__ (1, argv[1]);  }
+                                              return "adc command fail";
                                           }
 
           else if (argv0Is ("ina"))       {
@@ -567,11 +560,16 @@
                                           }
 
           else if (argv0Is ("charge"))    {
-                                              if (argc == 1) {  return __charge__ (0, 0, 0);              }
-                                              if (argc == 2) {  return __charge__ (1, argv[1], 0);        }
-                                              if (argc == 3) {  return __charge__ (2, argv[1], argv[2]);  }
+                                              if (argc == 1) {  return __charge__ (0, 0);        }
+                                              if (argc == 2) {  return __charge__ (1, argv[1]);  }
                                               return "charge command fail";
                                           }
+
+//        else if (argv0Is ("fwupdate"))  {
+//                                            if (argc == 1) {  return Utils.fwupdate (0, 0);         }
+//                                            if (argc == 2) {  return Utils.fwupdate (1, argv[1]);   }
+//                                            return "fwupdate command fail";
+//                                        }
 
           else if (argv0Is ("clear"))     { return argc == 1 ? __clear__ () : "Wrong syntax, use clear"; }
                                           
@@ -989,7 +987,21 @@
             return "";                                            
         }
 
-        const char *__adc__ ( int gpio1 ) {
+        const char *__adc__ ( int args, char *arg1 ) {
+
+            int gpio1 = atoi( arg1 );
+
+            #if CONFIG_IDF_TARGET_ESP32
+            if ((gpio1 < 32) || (39 < gpio1))  {
+              return "Wrong syntax, use adc [<GPIO>]   (where 32 <= GPIO <= 39)";
+            }
+            #elif CONFIG_IDF_TARGET_ESP32S3
+            if ((gpio1 < 0) || (10 < gpio1)) {
+              return "Wrong syntax, use adc [<GPIO>]   (where 0 <= GPIO <= 10)";
+            }
+            #else
+            #error ESP32 version not supported
+            #endif
 
             // Mittaus: R=0.1 ohm, 3A -> 0.3V - gain 5.1 -> abt 1.53V (rounding error 2%)
             // ADC scale:
@@ -1009,7 +1021,7 @@
             else {
               sniprintf( s, sizeof(s), "ERROR [adc] conversion on gpio %i", gpio1 );
             }
-            if (sendTelnet (s) <= 0) return "sendTelnet";
+            if (sendTelnet (s) <= 0) return "sendTelnet fail";
             return "";
         }
 
@@ -1030,12 +1042,11 @@
             else {
               sniprintf( s, sizeof(s), "ERROR [INA] access" );
             }
-            if (sendTelnet (s) <= 0) return "sendTelnet";
-
+            if (sendTelnet (s) <= 0) return "sendTelnet fail";
             return "";
         }
 
-        const char *__charge__ ( int arg, char *arg1, char *arg2 ) {
+        const char *__charge__ ( int arg, char *arg1 ) {
 
             char s[64];
             int  mA1s  = Measure.mA1s();   // Charging current without efficiency
@@ -1049,7 +1060,8 @@
             mAh  = abs( mAh );
             snprintf( s, sizeof(s), "charge = %c%i.%03i  %c%i.%03i  %c%i.%03i",
                       sign1, mA1s / 1000, mA1s % 1000, sign, mAs / 1000, mAs % 1000, sign, mAh / 1000, mAh % 1000 );
-            if (sendTelnet (s) <= 0) return "sendTelnet";
+
+            if (sendTelnet (s) <= 0) return "sendTelnet fail";
             return "";
         }
 
