@@ -133,7 +133,9 @@
     #define WEB_SESSIONS                  // comment this line out if you won't use web sessions
 #endif
 #ifdef FILE_SYSTEM
+    #ifndef CONFIG_IDF_TARGET_ESP32S3
     #define USE_I2S_INTERFACE             // I2S interface improves web based oscilloscope analog sampling (of a single signal) if ESP32 board has one
+    #endif
     // check #definitions in oscilloscope.h if the signals are inverted
     #include "./servers/oscilloscope.h"   // web based oscilloscope: you must #include httpServer.hpp as well to use it
 #endif
