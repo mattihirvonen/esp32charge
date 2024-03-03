@@ -29,12 +29,14 @@
 #define FILE_SYSTEM   FILE_SYSTEM_LITTLEFS  // LittleFS uses the least of memory, which may be needed for all the functionalities to run
 
 // 3. NETWORK:     #define how ESP32 will use the network
+// ESP device can operate both WiFi modes same time: AP and STATION
 
-#define WIFI_DELETE_CONF   1   // Delete existing network configuration files (and force following new config)
-#define WIFI_STATION_MODE  0   // Select STA(tion) mode or A(ccess) P(oint)
-#define WIFI_STATION_IP    0   // Select fixed IP or DHCP in STA(tion) mode 
+#define WIFI_DELETE_CONF      0   // Delete existing network configuration files (create new files at boot)
+#define WIFI_ENABLE_AP        1   // Enable A(ccess) P(point) mode
+#define WIFI_ENABLE_STATION   1   // Enable STA(tion) mode
+#define WIFI_ENABLE_DHCP      1   // Select DHCP or fixed IP in STA(tion) mode 
 
-#if WIFI_STATION_MODE
+#if WIFI_ENABLE_STATION
 
 // STA(tion)
 // #define how ESP32 will connecto to WiFi router
@@ -45,7 +47,7 @@
    #define DEFAULT_STA_SSID                          "????????"            // <- replace with your information
    #define DEFAULT_STA_PASSWORD                      "????????"            // <- replace with your information
 
-#if WIFI_STATION_IP
+#if ! WIFI_ENABLE_DHCP
 
 // the use of DHCP or static IP address wil be set in /network/interfaces if fileSystem.hpp is included.
 // The following is information needed for static IP configuration.
@@ -61,8 +63,10 @@
    #define DEFAULT_STA_DNS_1                         "193.189.160.13"   // <- replace with your information
    #define DEFAULT_STA_DNS_2                         "193.189.160.23"   // <- replace with your information
 
-#endif // WIFI_STATION_IP
-#else  // WIFI_STATION_MODE
+#endif // WIFI_ENABLE_DHCP
+#endif // WIFI_ENABLE_STATION
+
+#if WIFI_ENABLE_AP
 
 // A(ccess) P(oint)
 // #define how ESP32 will set up its access point
@@ -77,7 +81,7 @@
    #define DEFAULT_AP_IP                             "192.168.2.1"      // <- replace with your information
    #define DEFAULT_AP_SUBNET_MASK                    "255.255.255.0"    // <- replace with your information
 
-#endif // WIFI_STATION_MODE
+#endif // WIFI_ENABLE_AP
 
 
 // define the name Esp32 will use as its host name
