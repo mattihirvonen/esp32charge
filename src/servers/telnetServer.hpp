@@ -53,12 +53,12 @@
     #include "adcmeasure.h"       // Object(s):  ADC
     #include "INA.h"              // Object(s):  INA
     #include "measure.h"          // Object(s):  MEASURE
-    //#include "util.h"           // Object(s):  UTIL
+    #include "util.h"             // Object(s):  UTIL
 
     // External object(s)
     extern INA219    INA;
     extern MEASURE   Measure;
-    //extern UTIL    Utils;
+    extern UTIL      Utils;
 
     // Public object(s)
     ADCPU     ADC;
@@ -565,11 +565,11 @@
                                               return "charge command fail";
                                           }
 
-//        else if (argv0Is ("fwupdate"))  {
-//                                            if (argc == 1) {  return Utils.fwupdate (0, 0);         }
-//                                            if (argc == 2) {  return Utils.fwupdate (1, argv[1]);   }
-//                                            return "fwupdate command fail";
-//                                        }
+          else if (argv0Is ("fwupdate"))  {
+                                              if (argc == 1) {  return Utils.fwupdate (0, 0);         }
+                                              if (argc == 2) {  return Utils.fwupdate (1, argv[1]);   }
+                                              return "fwupdate command fail";
+                                          }
 
           else if (argv0Is ("clear"))     { return argc == 1 ? __clear__ () : "Wrong syntax, use clear"; }
                                           
