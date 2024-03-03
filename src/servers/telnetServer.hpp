@@ -47,11 +47,12 @@
     #include "fsString.h"
     #include "driver/adc.h"       // to use adc1_get_raw instead of analogRead
 
-    #include "Arduino.h"
-    #include "Wire.h"
-    #include "adcmeasure.h"
-    #include "INA.h"
-    #include "measure.h"
+    // Headers required with current sense MEASURE and ADC test application(s)
+    //#include "Arduino.h"
+    //#include "Wire.h"
+    #include "adcmeasure.h"       // Object(s):  ADC
+    #include "INA.h"              // Object(s):  INA
+    #include "measure.h"          // Object(s):  MEASURE
 
     // External object(s)
     extern INA219    INA;
