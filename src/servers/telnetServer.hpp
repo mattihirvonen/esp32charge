@@ -572,7 +572,7 @@
                                           }
 
           else if (argv0Is ("clear"))     { return argc == 1 ? __clear__ () : "Wrong syntax, use clear"; }
-                                          
+                            
           else if (argv0Is ("uname"))     { return argc == 1 ? __uname__ () : "Wrong syntax, use uname"; }
 
           else if (argv0Is ("free"))      { 
