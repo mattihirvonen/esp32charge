@@ -9,8 +9,14 @@
 #include  <Update.h>
 #include  "LittleFS.h"
 #include  "util.h"
+#include  "measure.h"          // Object(s):  MEASURE
 
+// External object references 
+extern  MEASURE  Measure;
+
+// Publish object
 UTIL  Utils;
+
 int   isFirmwareUploaded = 0;  // set false for debug security
 
 const char *doFWupdate ( void );
@@ -55,7 +61,28 @@ const char * UTIL::fwupdate( int args, const char *filename )
     Serial.println("");
 
     isFirmwareUploaded = 1;   // Fake to enable update process
-    return doFWupdate();;
+    return doFWupdate();
+}
+
+
+// currently "arg1" is not used here
+const char * UTIL::charge( int arg, const char *arg1 ) {
+
+    static char s[64];
+
+    int  mA1s  = Measure.mA1s();   // Charging current without efficiency
+    int  mAs   = Measure.mAs();    // Charging sum with efficiency
+    int  mAh   = mAs / 3600;
+    char sign1 = mA1s >= 0 ? '+' : '-';
+    char sign  = mAs  >= 0 ? '+' : '-';
+
+    mA1s = abs( mA1s );
+    mAs  = abs( mAs);
+    mAh  = abs( mAh );
+    snprintf( s, sizeof(s), "charge = %c%i.%03i  %c%i.%03i  %c%i.%03i",
+                sign1, mA1s / 1000, mA1s % 1000, sign, mAs / 1000, mAs % 1000, sign, mAh / 1000, mAh % 1000 );
+
+    return s;
 }
 
 //==================================================================================
@@ -81,6 +108,8 @@ void progressCallBack(size_t currSize, size_t totalSize) {
 
 const char * doFWupdate ( void )
 {
+    static char reply[64];
+
     bool error = false;
 
     if ( isFirmwareUploaded )
@@ -121,14 +150,19 @@ const char * doFWupdate ( void )
                 Serial.println(F("Firmware rename error!"));
                 error = true;
             }
-            if ( error ) {
-                return "Firmware rename error!";  // Return to telnet with error message
+            if ( error )   // Return to telnet with error message
+            {
+                return "Firmware update OK, rename error!\r\nRequire reboot";
             }
             delay(2000);   // Wait Serial.print(s) to flow out from serial port...
 
 //          ESP.reset();
             reset( 0 );
         }
+        else {
+            snprintf(reply, sizeof(reply), "Can not open file: %s", name);
+            return reply;
+        }
     }
-    return "";  // Newer should reach here!
+    return "FirmwareUploaded status is false";  // Newer should reach here!
 }

@@ -50,14 +50,12 @@
     // Headers required with current sense MEASURE and ADC test application(s)
     //#include "Arduino.h"
     //#include "Wire.h"
-    #include "adcmeasure.h"       // Object(s):  ADC
+    #include "adcmeasure.h"       // Object(s):  ADCPU
     #include "INA.h"              // Object(s):  INA
-    #include "measure.h"          // Object(s):  MEASURE
     #include "util.h"             // Object(s):  UTIL
 
     // External object(s)
     extern INA219    INA;
-    extern MEASURE   Measure;
     extern UTIL      Utils;
 
     // Public object(s)
@@ -560,8 +558,8 @@
                                           }
 
           else if (argv0Is ("charge"))    {
-                                              if (argc == 1) {  return __charge__ (0, 0);        }
-                                              if (argc == 2) {  return __charge__ (1, argv[1]);  }
+                                              if (argc == 1) {  return Utils.charge (0, 0);        }
+                                              if (argc == 2) {  return Utils.charge (1, argv[1]);  }
                                               return "charge command fail";
                                           }
 
@@ -1042,25 +1040,6 @@
             else {
               sniprintf( s, sizeof(s), "ERROR [INA] access" );
             }
-            if (sendTelnet (s) <= 0) return "sendTelnet fail";
-            return "";
-        }
-
-        const char *__charge__ ( int arg, char *arg1 ) {
-
-            char s[64];
-            int  mA1s  = Measure.mA1s();   // Charging current without efficiency
-            int  mAs   = Measure.mAs();    // Charging sum with efficiency
-            int  mAh   = mAs / 3600;
-            char sign1 = mA1s >= 0 ? '+' : '-';
-            char sign  = mAs  >= 0 ? '+' : '-';
-
-            mA1s = abs( mA1s );
-            mAs  = abs( mAs);
-            mAh  = abs( mAh );
-            snprintf( s, sizeof(s), "charge = %c%i.%03i  %c%i.%03i  %c%i.%03i",
-                      sign1, mA1s / 1000, mA1s % 1000, sign, mAs / 1000, mAs % 1000, sign, mAh / 1000, mAh % 1000 );
-
             if (sendTelnet (s) <= 0) return "sendTelnet fail";
             return "";
         }
