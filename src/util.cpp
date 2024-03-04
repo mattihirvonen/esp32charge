@@ -11,10 +11,9 @@
 #include  "util.h"
 
 UTIL  Utils;
+int   isFirmwareUploaded = 0;  // set false for debug security
 
-int  isFirmwareUploaded = 0;  // set false for security
-
-void fw_update ( void );
+const char *doFWupdate ( void );
 
 ////////////////////////////////////////////////////////
 //
@@ -48,18 +47,15 @@ bool  UTIL::begin( void )
 //
 const char * UTIL::fwupdate( int args, const char *filename )
 {
-    static char reply[64];
+    static char s[64];
 
     // Debug print
-    snprintf(reply, sizeof(reply), "fwupdate function called with arg: <%s>", filename);
-
-    isFirmwareUploaded = 1;   // Fake to enable update process
-    fw_update();
-
-    Serial.printf("%s", reply);
+    snprintf(s, sizeof(s), "fwupdate function called with arg: <%s>", filename);
+    Serial.printf("%s", s);
     Serial.println("");
 
-    return (const char*) reply;
+    isFirmwareUploaded = 1;   // Fake to enable update process
+    return doFWupdate();;
 }
 
 //==================================================================================
@@ -83,8 +79,10 @@ void progressCallBack(size_t currSize, size_t totalSize) {
 }
 
 
-void fw_update ( void )
+const char * doFWupdate ( void )
 {
+    bool error = false;
+
     if ( isFirmwareUploaded )
     {
         Serial.println(F("The uploaded firmware now stored in FS!"));
@@ -105,9 +103,14 @@ void fw_update ( void )
             else {
                 Serial.println(F("Update error!"));
                 Serial.println(Update.getError());
+                error = true;
             }
 
             firmware.close();
+
+            if ( error ) {
+                return "Update error!";  // Return to telnet with error message
+            }
 
             String renamed = name;
             renamed.replace(".bin", ".bak");
@@ -116,12 +119,16 @@ void fw_update ( void )
             }
             else {
                 Serial.println(F("Firmware rename error!"));
+                error = true;
             }
-            delay(2000);
+            if ( error ) {
+                return "Firmware rename error!";  // Return to telnet with error message
+            }
+            delay(2000);   // Wait Serial.print(s) to flow out from serial port...
 
 //          ESP.reset();
-//          ESP.restart();
             reset( 0 );
         }
     }
+    return "";  // Newer should reach here!
 }
