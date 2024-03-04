@@ -25,13 +25,17 @@
 // Public object(s)
 INA219  INA( INA219_ADDRESS );
 
-// Local variables 
-static int _mA;                // "raw" current measurement result in milli amperes
-static int _mAs = 0;           // Cumulative charge in milli ampere seconds
-static int _mA1s;              // Average current measurement over 1 second period
-static int _Rshunt = 100000;   // micro ohm
-static int _scale  = 100;      // normalize to 100
-static int _efficiency = 80;   // battery charging efficiency [%]
+// Local variables, which accessed with multiple CPU cores
+// (how to make sure latest valid data is in inter CPU common memory and
+// do not reside only in one one CPU core's cache memory ???)
+// Read also https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html
+//
+static volatile int _mA;                // "raw" current measurement result in milli amperes
+static volatile int _mAs = 0;           // Cumulative charge in milli ampere seconds
+static volatile int _mA1s;              // Average current measurement over 1 second period
+static volatile int _Rshunt = 100000;   // micro ohm
+static volatile int _scale  = 100;      // normalize to 100
+static volatile int _efficiency = 80;   // battery charging efficiency [%]
 
 // Trick: Set "scale" multiplier to 612 (== 6.12x)
 // Notify wiring resistances in my measurement test circuit
@@ -69,7 +73,7 @@ void vTaskMeasure( void * pvParameters )
     // initialize digital pin LED_BUILTIN as an output.
     // pinMode(LED_BUILTIN, OUTPUT);
 
-    INA.reset();   // Set INA mode continuous 16 samples
+    INA.reset();   // Set INA chip mode continuous 16 samples averaging
 
     // Initialise the xLastWakeTime variable with the current time.
     xLastWakeTime = xTaskGetTickCount ();
@@ -89,12 +93,13 @@ void vTaskMeasure( void * pvParameters )
 
             int mA_charge,  mA = INA.shunt_uV() / ( _Rshunt / 1000 );
 
-            _mA = (mA * _scale ) / 100;  // Update "raw" current measuremeunt result
+            mA = (mA * _scale ) / 100;
 
-            if ( _mA >=0 ) {  mA_charge = ( _mA * _efficiency ) / 100;  }    // Charging
-            else           {  mA_charge =   _mA;                        }    // Discharging
+            if ( mA >=0 ) {  mA_charge = ( mA * _efficiency ) / 100;  }    // Charging
+            else          {  mA_charge =   mA;                        }    // Discharging
 
-            sum_mA1s += _mA;         // Raw charging current (measure with DMM)
+            _mA       = mA;          // Update "raw" current  measuremeunt result
+            sum_mA1s += mA;          // Raw charging current (measure with slow DMM)
             sum_mAs  += mA_charge;   // Charging with efficiency
         }
 
