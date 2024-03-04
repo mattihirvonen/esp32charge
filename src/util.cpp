@@ -46,10 +46,11 @@ bool  UTIL::begin( void )
 // Firmware update do not support  "*filename"
 // Currently use constant filename "/firmware.bin"
 //
-const char *  UTIL::fwupdate( int args, const char *filename )
+const char * UTIL::fwupdate( int args, const char *filename )
 {
     static char reply[64];
 
+    // Debug print
     snprintf(reply, sizeof(reply), "fwupdate function called with arg: <%s>", filename);
 
     isFirmwareUploaded = 1;   // Fake to enable update process
@@ -82,7 +83,7 @@ void progressCallBack(size_t currSize, size_t totalSize) {
 }
 
 
-void fw _update ( void )
+void fw_update ( void )
 {
     if ( isFirmwareUploaded )
     {
@@ -99,7 +100,7 @@ void fw _update ( void )
             Update.begin(firmware.size(), U_FLASH);
             Update.writeStream(firmware);
             if (Update.end()) {
-            Serial.println(F("Update finished!"));
+                Serial.println(F("Update finished!"));
             }
             else {
                 Serial.println(F("Update error!"));
