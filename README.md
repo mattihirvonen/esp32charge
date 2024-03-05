@@ -30,6 +30,7 @@ New telnet commands:
 Other significant things:
 - WinSCP's FTP feel to operate well with application
 - Oscilloscope web page and code have new ADC gain selection "ATTEN"
+- Change oscilloscope's horizontal selection units as ordinary scope(s) use time/div
 - Original code missing ADC initialization / configuration at all (feature added to code)
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
 
