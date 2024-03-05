@@ -6,6 +6,8 @@
 #include "INA.h"
 #include "measure.h"
 
+void dmesg (char *message1);
+
 // Strategy:
 // - Raise measure task's priority over other task's priority to
 //   offer better measurement sample timing
@@ -29,7 +31,14 @@ INA219  INA( INA219_ADDRESS );
 // (how to make sure latest valid data is in inter CPU common memory and
 // do not reside only in one one CPU core's cache memory ???)
 // Read also https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html
-//
+
+// NOTE(s):
+// - All MEASURE instances should use this same data!
+// - There is started only one measure task
+// 
+static volatile int started = 0;        // Allow to start only one measurement task
+static volatile int timingDelay[22];    // statistics about measure task's determinism
+                                        //
 static volatile int _mA;                // "raw" current measurement result in milli amperes
 static volatile int _mAs = 0;           // Cumulative charge in milli ampere seconds
 static volatile int _mA1s;              // Average current measurement over 1 second period
@@ -50,6 +59,8 @@ static volatile int _efficiency = 80;   // battery charging efficiency [%]
 //
 void vTaskMeasure( void * pvParameters )
 {
+    static char s[64];  // Do not use stack space
+
     // Note: Select SAMPLES_PER_SECOND between range 10 ... 100
     // ( 10, 20, 40, 50, 100 )
 
@@ -69,6 +80,10 @@ void vTaskMeasure( void * pvParameters )
     Serial.print(  "Measure task priority:   ");
     Serial.println( uxTaskPriorityGet(NULL) );
     Serial.println();
+
+    snprintf(s, sizeof(s), "[%s] is running on core %i (priority %i)",
+                __func__, xPortGetCoreID(), uxTaskPriorityGet(NULL) );
+    dmesg(s);
     
     // initialize digital pin LED_BUILTIN as an output.
     // pinMode(LED_BUILTIN, OUTPUT);
@@ -77,6 +92,7 @@ void vTaskMeasure( void * pvParameters )
 
     // Initialise the xLastWakeTime variable with the current time.
     xLastWakeTime = xTaskGetTickCount ();
+    memset( (void*)timingDelay, sizeof(timingDelay), 0 );
 
     while ( 1 )
     {
@@ -85,8 +101,27 @@ void vTaskMeasure( void * pvParameters )
 
         for ( int i = 0; i < SAMPLES_PER_SECOND; i++ )
         {
+            TickType_t  scheduleTime = xLastWakeTime + xFrequency;
+
             // Wait for the next cycle.
             xWasDelayed = xTaskDelayUntil( &xLastWakeTime, xFrequency );
+
+            int msDelay = xTaskGetTickCount() - scheduleTime;
+
+            if ( msDelay < 0 ) {
+                timingDelay[ 21 ] += 1;
+            }
+            if ( msDelay >= 100 ) {
+                timingDelay[ 20 ] += 1;
+            }
+            else if ( msDelay >= 10 ) {
+                msDelay = 10 + (msDelay / 10);
+                timingDelay[ msDelay ] += 1;
+            }
+            else {
+                timingDelay[ msDelay ] += 1;
+                timingDelay[ 10   ]    += 1;
+            }
 
             // Perform action here. xWasDelayed value can be used to determine
             // whether a deadline was missed if the code here took too long.
@@ -137,6 +172,11 @@ MEASURE::~MEASURE()
 void MEASURE::begin( int scale_100 )
 {
     _scale = scale_100;
+
+    if ( started ) {    // Run only one measurement task 
+         return;
+    }
+    started = 1;
 
     Wire.begin();
     if ( INA.begin() )  { Serial.println("I2C connect to INA ok");     }
@@ -202,4 +242,14 @@ int MEASURE::setEfficiency( int percent )
 int MEASURE::getEfficiency( void )
 {
     return _efficiency;
+}
+
+
+// Get schedule statistics
+int MEASURE::getStat( int select )
+{
+    select = abs( select );
+    if ( select > (sizeof(timingDelay) / sizeof(int)) ) return -1;  // ERROR
+
+    return timingDelay[ select ]; 
 }
