@@ -1,7 +1,44 @@
-# ESP32 with HTTP server, Telnet server, file system, FTP server FTP client, SMTP client, cron daemon and user management.
+# ESP32 based battery charge measurement
 
+###This project is for monitoring battery charge state in [Ah] in sailing boat
 
-## This template is a quick and easy way to build a nice user interface for an ESP32 project, without having to take care of all the switches, LED diodes, displays, etc.
+Used components are
+- Seeed Studio XIAO ESP32-S3 module (dual core CPU)
+- Adafruit INA219 Featherwing
+
+Project based "multi purpouse" server application described later in this document.
+Original project have been bug fixed, modified and added several software modules.
+Project have also ported with minimal effort to PlatformIO development environment.
+New software modules and configuration files are
+- *adcmeasure.cpp / .h* - fixed separated ADC measurement functions for telnet commands (support NodeMCU ESP32 JoyIT and SeeeD Studio XIAO ESP32-S3)
+- *measure.cpp / .h* - current measurement task, which use INA219 measurement chip (I2C bus device)
+- *ina219.cpp / .h* - Aduino project style driver code module to access measurement chip
+- *util.cpp / .h* - contain telnet server's command extensions executable code(s)
+- *ina219.pdf* - data sheet of measuremen chip
+- *plaformio.ini* - PlatformIO project configuration file
+- *partitions_ESP32_\*.csv* - flash memory partitioning configuration files used by platformIO build process (referenced in platformio.ini file)
+
+New telnet commands:
+- *adc [gpio]* - where "gpio" is gpio pin number
+- *ina* - reset INA219 chip and set continuous 16 A/D samples averaging mode (takes about 8.5 ms to make 16 A/D conversions by hardware)
+- *ina [reg]* - read INDA219 register
+- *ina [reg] [data]* - write "data" to INA219 chip register "reg". Data value can be 10 or 16 based (0x...)
+- *charge* - print current value [A], current charged/discharged in [As] and [Ah]
+- *charge [stat]* - print measure task's self measuremnt debug statistics of task's timings
+- *fwupdate* - firmware code update to flash from file system "/firmware.bin" (use FTP to upload file)
+
+Other significant things:
+- WinSCP's FTP feel to operate well with application
+- Oscilloscope web page and code have new ADC gain selection "ATTEN"
+- Original code missing ADC initialization / configuration at all (feature added to code)
+- A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
+
+Rest of this README is original reference projec's README (for additional info)
+
+# ======================================================================
+### ESP32 with HTTP server, Telnet server, file system, FTP server FTP client, SMTP client, cron daemon and user management.
+
+### This template is a quick and easy way to build a nice user interface for an ESP32 project, without having to take care of all the switches, LED diodes, displays, etc.
 
    - You only have to modify the telnetCommandHandlerCallback function to build the Telnet user interface for your project.
 
