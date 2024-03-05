@@ -36,8 +36,8 @@ INA219  INA( INA219_ADDRESS );
 // - All MEASURE instances should use this same data!
 // - There is started only one measure task
 // 
-static volatile int started = 0;        // Allow to start only one measurement task
-static volatile int timingDelay[22];    // statistics about measure task's determinism
+static volatile int started = 0;        // allow to start only one measurement task
+static volatile int timingDelay[22];    // task's measured timing statistics 
                                         //
 static volatile int _mA;                // "raw" current measurement result in milli amperes
 static volatile int _mAs = 0;           // Cumulative charge in milli ampere seconds
@@ -59,6 +59,8 @@ static volatile int _efficiency = 80;   // battery charging efficiency [%]
 //
 void vTaskMeasure( void * pvParameters )
 {
+    #define DBGPIN  2  // GPIO
+
     static char s[64];  // Do not use stack space
 
     // Note: Select SAMPLES_PER_SECOND between range 10 ... 100
@@ -67,7 +69,8 @@ void vTaskMeasure( void * pvParameters )
     #define SAMPLES_PER_SECOND   20
     #define SAMPLE_PERIOD       (1000 / SAMPLES_PER_SECOND)    // [ms]
 
-    static int ledstate = 0;
+    int ledstate = 0;
+    int dbgpin   = 0;
 
     TickType_t        xLastWakeTime;
     const TickType_t  xFrequency = SAMPLE_PERIOD;   // in tick(s) [ms]
@@ -87,6 +90,7 @@ void vTaskMeasure( void * pvParameters )
     
     // initialize digital pin LED_BUILTIN as an output.
     // pinMode(LED_BUILTIN, OUTPUT);
+       pinMode(DBGPIN, OUTPUT);
 
     INA.reset();   // Set INA chip mode continuous 16 samples averaging
 
@@ -98,6 +102,7 @@ void vTaskMeasure( void * pvParameters )
     {
         int sum_mA1s = 0;
         int sum_mAs  = 0;
+        int samples  = 0;
 
         for ( int i = 0; i < SAMPLES_PER_SECOND; i++ )
         {
@@ -105,18 +110,19 @@ void vTaskMeasure( void * pvParameters )
 
             // Wait for the next cycle.
             xWasDelayed = xTaskDelayUntil( &xLastWakeTime, xFrequency );
+            digitalWrite(DBGPIN, (dbgpin++ & 1));
 
             int msDelay = xTaskGetTickCount() - scheduleTime;
 
             if ( msDelay < 0 ) {
                 timingDelay[ 21 ] += 1;
+//              continue;
             }
             if ( msDelay >= 100 ) {
                 timingDelay[ 20 ] += 1;
             }
             else if ( msDelay >= 10 ) {
-                msDelay = 10 + (msDelay / 10);
-                timingDelay[ msDelay ] += 1;
+                timingDelay[ 10 + (msDelay / 10) ] += 1;
             }
             else {
                 timingDelay[ msDelay ] += 1;
@@ -133,15 +139,21 @@ void vTaskMeasure( void * pvParameters )
             if ( mA >=0 ) {  mA_charge = ( mA * _efficiency ) / 100;  }    // Charging
             else          {  mA_charge =   mA;                        }    // Discharging
 
-            _mA       = mA;          // Update "raw" current  measuremeunt result
-            sum_mA1s += mA;          // Raw charging current (measure with slow DMM)
-            sum_mAs  += mA_charge;   // Charging with efficiency
+            if ( msDelay >= 0 )          // Some cases at start msDelay might be negative ?!!
+            {
+                samples  += 1;
+                sum_mA1s += mA;          // Raw charging current (measure with slow DMM)
+                sum_mAs  += mA_charge;   // Charging with efficiency                
+                _mA       = mA;          // Update "raw" current  measuremeunt result
+            }
         }
 
         // Update one time per second
-        _mA1s  = sum_mA1s / SAMPLES_PER_SECOND;
-        _mAs  += sum_mAs  / SAMPLES_PER_SECOND;
-
+        if ( samples )
+        {
+            _mA1s  = sum_mA1s / samples;
+            _mAs  += sum_mAs  / samples;
+        }
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
         else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)
     }

@@ -17,17 +17,15 @@
 
 */
 
-// Current measurement task
-#include "measure.h"
-
-#include <task.h>
 #include <WiFi.h>
 // --- PLEASE MODIFY THIS FILE FIRST! --- This is where you can configure your network credentials, which servers will be included, etc ...
 #include "Esp32_servers_config.h"
 
+// Current measurement task
+#include "measure.h"
+
 // Public object(s)
 MEASURE Measure;
-
 
                     // ----- USED FOR DEMONSTRATION ONLY, YOU MAY FREELY DELETE THE FOLLOWING DEFINITIONS -----
                     #include "measurements.hpp"
