@@ -2,16 +2,21 @@
 
 ### This project is for monitoring battery charge state [Ah] in sailing boat
 
-ADC measurement has choosen to be 50 ms for tiller pilot operation.
+ADC measurement sample rate has choosen to be 50 ms for reason tiller pilot operation.
 Tiller pilot motor drives very short periods (typically one to two secons at time). Battery charging calculation expects efficiency by default to be 80%
 
 Used components are
 - Seeed Studio XIAO ESP32-S3 module (dual core CPU)
+  - https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/
 - Adafruit INA219 Featherwing
+  - https://eu.mouser.com/new/adafruit/adafruit-ina219-development-kit/
+  - https://learn.adafruit.com/adafruit-ina219-current-sensor-breakout/overview
 
-Project based "multi purpouse" server application described later in this document.
-Original project have been bug fixed, modified and added several software modules.
-Project have also ported with minimal effort to PlatformIO development environment.
+Project based "multi purpouse" server application template (GitHub) project described later in this document 
+(*Multitasking-Esp32-HTTP-FTP-Telnet-servers-for-Arduino*).
+Original project have been bug fixed, modified and added several software modules and features.
+
+Project is ported with minimal effort to PlatformIO development environment. PlatformIO source files resides different folder structure as Arduino IDE project files. PlatdormIO sources are in sub directory tree "src".
 New software modules and configuration files are
 - *adcmeasure.cpp / .h* - fixed separated ADC measurement functions for telnet commands (support NodeMCU ESP32 JoyIT and SeeeD Studio XIAO ESP32-S3)
 - *measure.cpp / .h* - current measurement task, which use INA219 measurement chip (I2C bus device)
@@ -25,20 +30,20 @@ New telnet commands:
 - *adc [gpio]* - where "gpio" is gpio pin number
 - *ina* - reset INA219 chip and set continuous 16 A/D samples averaging mode (takes about 8.5 ms to make 16 A/D conversions by hardware)
 - *ina [reg]* - read INDA219 register
-- *ina [reg] [data]* - write "data" to INA219 chip register "reg". Data value can be 10 or 16 based (0x...)
+- *ina [reg] [data]* - write "data" to INA219 chip register "reg". Data value can be 10 or 16 based (0x.. prefix)
 - *charge* - print current value [A], current charged/discharged in [As] and [Ah]
 - *charge [stat]* - print measure task's self measuremnt debug statistics of task's timings
-- *fwupdate* - firmware code update to flash from file system "/firmware.bin" (use FTP to upload file)
+- *fwupdate* - firmware boot code update to flash chip from file system "/firmware.bin" (use FTP to upload file)
 
 Other significant things:
 - WinSCP's FTP feel to operate well with application
 - Oscilloscope web page and code have new ADC gain selection "ATTEN"
-- Change oscilloscope's horizontal selection units as ordinary scope(s) use time/div
-- Original code missing ADC initialization / configuration at all (feature added to code)
+- Change oscilloscope's horizontal speed selection units as ordinary scope(s) use time/div
+- Original code missing ADC initialization / configuration at all (initialization added to oscilloscope code)
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
 
 ToDo:
-- Web interface to access measurement in boat (WiFi Access Point)
+- Web interface to access current measurement data in boat (WiFi Access Point)
 - Install in boat and calibrate measurement (we will use original battery cable harness as current sense shunt resistor)
 
 Rest of this README is original template projec's README (for additional info)
