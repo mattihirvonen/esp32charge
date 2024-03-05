@@ -1,6 +1,6 @@
 # ESP32 based battery charge measurement
 
-###This project is for monitoring battery charge state in [Ah] in sailing boat
+### This project is for monitoring battery charge state in [Ah] in sailing boat
 
 Used components are
 - Seeed Studio XIAO ESP32-S3 module (dual core CPU)
@@ -35,8 +35,8 @@ Other significant things:
 
 Rest of this README is original reference projec's README (for additional info)
 
-# ======================================================================
-### ESP32 with HTTP server, Telnet server, file system, FTP server FTP client, SMTP client, cron daemon and user management.
+# =========================================
+## ESP32 with HTTP server, Telnet server, file system, FTP server FTP client, SMTP client, cron daemon and user management.
 
 ### This template is a quick and easy way to build a nice user interface for an ESP32 project, without having to take care of all the switches, LED diodes, displays, etc.
 

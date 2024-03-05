@@ -353,6 +353,7 @@
       }
       function frequencyLabelFromFrequencySlider (value) {
         switch (value) {
+          /*
           case '1': return '0,1 Hz';
           case '2': return '0,2 Hz';
           case '3': return '0,5 Hz';
@@ -370,6 +371,24 @@
           case '15':  return '2 KHz';
           case '16':  return '5 KHz';
           case '17':  return '10 KHz';
+          */
+          case '1':   return '1 s/div';
+          case '2':   return '500 ms/div';
+          case '3':   return '200 ms/div';
+          case '4':   return '100 ms/div';
+          case '5':   return '50 ms/div';
+          case '6':   return '20 ms/div';
+          case '7':   return '10 ms/div';
+          case '8':   return '5 ms/div';
+          case '9':   return '2 ms/div';
+          case '10':  return '60 Hz';
+          case '11':  return '1 ms/div';
+          case '12':  return '500 us/div';
+          case '13':  return '200 us/div';
+          case '14':  return '100 us/div';
+          case '15':  return '50 us/div';
+          case '16':  return '20 us/div';
+          case '17':  return '10 us/div';
         }
       }
 
