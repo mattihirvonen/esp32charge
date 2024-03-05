@@ -66,9 +66,27 @@ const char * UTIL::fwupdate( int args, const char *filename )
 
 
 // currently "arg1" is not used here
-const char * UTIL::charge( int arg, const char *arg1 ) {
+const char * UTIL::charge( int args, const char *arg1 )
+{
+    static char s[128];
 
-    static char s[64];
+    if ( args ) {
+        if ( strstr(arg1, "sta") )
+        {
+            int stat[22];
+
+            for ( int i = 0; i <= 21; i++ ) {
+                stat[i] = Measure.getStat( i );
+            }
+            snprintf( s, sizeof(s), "stat: %i %i %i %i %i %i %i %i %i %i - %i %i %i %i %i %i %i %i %i %i - %i %i",
+                stat[0],  stat[1],  stat[2],  stat[3],  stat[4],  stat[5],  stat[6],  stat[7],  stat[8],  stat[9],
+                stat[10], stat[11], stat[12], stat[13], stat[14], stat[15], stat[16], stat[17], stat[18], stat[19],
+                stat[20], stat[22] );
+                    
+            return s;
+        }
+        return "[charge] invalid argument";
+    }
 
     int  mA1s  = Measure.mA1s();   // Charging current without efficiency
     int  mAs   = Measure.mAs();    // Charging sum with efficiency
