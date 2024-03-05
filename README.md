@@ -1,6 +1,9 @@
 # ESP32 based battery charge measurement
 
-### This project is for monitoring battery charge state in [Ah] in sailing boat
+### This project is for monitoring battery charge state [Ah] in sailing boat
+
+ADC measurement has choosen to be 50 ms for tiller pilot operation.
+Tiller pilot motor drives very short periods (typically one to two secons at time). Battery charging calculation expects efficiency by default to be 80%
 
 Used components are
 - Seeed Studio XIAO ESP32-S3 module (dual core CPU)
@@ -34,9 +37,14 @@ Other significant things:
 - Original code missing ADC initialization / configuration at all (feature added to code)
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
 
-Rest of this README is original reference projec's README (for additional info)
+ToDo:
+- Web interface to access measurement in boat (WiFi Access Point)
+- Install in boat and calibrate measurement (we will use original battery cable harness as current sense shunt resistor)
 
-# =========================================
+Rest of this README is original template projec's README (for additional info)
+
+# =================================
+
 ## ESP32 with HTTP server, Telnet server, file system, FTP server FTP client, SMTP client, cron daemon and user management.
 
 ### This template is a quick and easy way to build a nice user interface for an ESP32 project, without having to take care of all the switches, LED diodes, displays, etc.
