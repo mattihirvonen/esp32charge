@@ -11,6 +11,8 @@
 #include  "util.h"
 #include  "measure.h"          // Object(s):  MEASURE
 
+void dmesg (char *message1);
+
 // External object references 
 extern  MEASURE  Measure;
 
@@ -56,9 +58,11 @@ const char * UTIL::fwupdate( int args, const char *filename )
     static char s[64];
 
     // Debug print
-    snprintf(s, sizeof(s), "fwupdate function called with arg: <%s>", filename);
-    Serial.printf("%s", s);
-    Serial.println("");
+    if ( args ) {
+        snprintf(s, sizeof(s), "fwupdate function called with arg1: <%s>", filename);
+        Serial.printf("%s", s);
+        Serial.println("");
+    }
 
     isFirmwareUploaded = 1;   // Fake to enable update process
     return doFWupdate();
