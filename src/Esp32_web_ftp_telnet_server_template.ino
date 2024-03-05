@@ -336,7 +336,7 @@ void setup () {
     Serial.begin (115200);
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
-    // Start current measurement task
+    // Start measurement task
     Measure.begin( 612 );
 
     #ifdef FILE_SYSTEM
@@ -420,6 +420,16 @@ void setup () {
 
 }
 
-void loop () {
 
+void loop ()
+{
+    static int  run = 0;
+    static char s[64];      // Save stack space
+
+    if ( !run ) {
+          run = 1;
+          snprintf(s, sizeof(s), "[%s] is running on core %i (priority %i)",
+                      __func__, xPortGetCoreID(), uxTaskPriorityGet(NULL) );
+          dmesg(s);
+    }
 }
