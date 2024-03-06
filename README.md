@@ -23,7 +23,8 @@ Web page references
 - https://github.com/RobTillaart/INA226
 - https://github.com/adafruit/Adafruit_INA219
 - https://github.com/adafruit/Adafruit-INA219-Current-Sensor-PCB
-- https://platformio.org/
+- https://platformio.org
+- https://joy-it.net/en/products/SBC-NodeMCU-ESP32  (first software tests with telnet + ADC)
 
 Project based "multi purpouse" server application template (GitHub) project referenced above and described later in this document 
 (*Multitasking-Esp32-HTTP-FTP-Telnet-servers-for-Arduino*).
