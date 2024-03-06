@@ -3,7 +3,13 @@
 ### This project is for monitoring battery charge state [Ah] in sailing boat
 
 ADC measurement sample rate has choosen to be 50 ms for reason tiller pilot operation.
-Tiller pilot motor drives very short periods (typically one to two secons at time). Battery charging calculation expects efficiency by default to be 80%
+Tiller pilot motor drives very short periods (typically one to two secons at time).
+Sample rate may be need to change shorter. INA219 chip will software configure to
+do 16 ADC convesions averaging by silicon which takes about 8.5 ms.
+INA219 chip sensitivity is 10 uV / bit (12 bit conversion).
+Other alternative common used module type INA226 have sensitivity 1 uV / bit
+(16 bit conversion).
+Battery charging calculation expects efficiency by default to be 80% (software feature)
 
 Used components are
 - Seeed Studio XIAO ESP32-S3 module (dual core CPU)
@@ -12,17 +18,29 @@ Used components are
   - https://eu.mouser.com/new/adafruit/adafruit-ina219-development-kit/
   - https://learn.adafruit.com/adafruit-ina219-current-sensor-breakout/overview
 
-Project based "multi purpouse" server application template (GitHub) project described later in this document 
+Web page references
+- https://github.com/BojanJurca/Multitasking-Esp32-HTTP-FTP-Telnet-servers-for-Arduino
+- https://github.com/RobTillaart/INA226
+- https://github.com/adafruit/Adafruit_INA219
+- https://github.com/adafruit/Adafruit-INA219-Current-Sensor-PCB
+- https://platformio.org/
+
+Project based "multi purpouse" server application template (GitHub) project referenced above and described later in this document 
 (*Multitasking-Esp32-HTTP-FTP-Telnet-servers-for-Arduino*).
 Original project have been bug fixed, modified and added several software modules and features.
 
-Project is ported with minimal effort to PlatformIO development environment. PlatformIO source files resides different folder structure as Arduino IDE project files. PlatdormIO sources are in sub directory tree "src".
+Project is ported with minimal effort from Arduino IDE environment to 
+more "professional" Visual Studio Code + PlatformIO plugin development environment.
+PlatformIO source files resides different folder structure as
+Arduino IDE project files. PlatformIO active sources are in sub directory tree "src".
 New software modules and configuration files are
+
 - *adcmeasure.cpp / .h* - fixed separated ADC measurement functions for telnet commands (support NodeMCU ESP32 JoyIT and SeeeD Studio XIAO ESP32-S3)
 - *measure.cpp / .h* - current measurement task, which use INA219 measurement chip (I2C bus device)
 - *ina219.cpp / .h* - Aduino project style driver code module to access measurement chip
 - *util.cpp / .h* - contain telnet server's command extensions executable code(s)
 - *ina219.pdf* - data sheet of measuremen chip
+- *ina226.pdf* - data sheet of measuremen chip
 - *plaformio.ini* - PlatformIO project configuration file
 - *partitions_ESP32_\*.csv* - flash memory partitioning configuration files used by platformIO build process (referenced in platformio.ini file)
 
@@ -40,6 +58,7 @@ Other significant things:
 - Oscilloscope web page and code have new ADC gain selection "ATTEN"
 - Change oscilloscope's horizontal speed selection units as ordinary scope(s) use time/div
 - Original code missing ADC initialization / configuration at all (initialization added to oscilloscope code)
+- Commenting WiFi configuration options more reader covinient and add optional feature to clear WiFi configuration files from flash file system at boot time (when user make wrong configuration and do net get WiFi connection to target device) 
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
 
 ToDo:
