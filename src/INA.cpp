@@ -86,7 +86,8 @@ int INA219::shunt_uV( void )
 
 int INA219::bus_mV( void )
 {
-    return  readRegister( 2 );
+    int value = readRegister( 2 ) >> 3;
+    return  4 * value;     // 4 mV/bit
 }
 
 ////////////////////////////////////////////////////////

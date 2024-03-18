@@ -39,6 +39,7 @@ INA219  INA( INA219_ADDRESS );
 static volatile int started = 0;        // allow to start only one measurement task
 static volatile int timingDelay[22];    // task's measured timing statistics 
                                         //
+static volatile int _mV;                // "raw" voltage measurement result in milli volts
 static volatile int _mA;                // "raw" current measurement result in milli amperes
 static volatile int _mAs = 0;           // Cumulative charge in milli ampere seconds
 static volatile int _mA1s;              // Average current measurement over 1 second period
@@ -131,6 +132,9 @@ void vTaskMeasure( void * pvParameters )
 
             // Perform action here. xWasDelayed value can be used to determine
             // whether a deadline was missed if the code here took too long.
+            // NOTE:
+            // - neg.input: battery terminal (bus voltage to ground measurement terminal)
+            // - pos.input: load    terminal
 
             int mA_charge,  mA = INA.shunt_uV() / ( _Rshunt / 1000 );
 
@@ -151,6 +155,7 @@ void vTaskMeasure( void * pvParameters )
         // Update one time per second
         if ( samples )
         {
+            _mV    = INA.bus_mV();       // 14150 / 14220;
             _mA1s  = sum_mA1s / samples;
             _mAs  += sum_mAs  / samples;
         }
@@ -201,6 +206,11 @@ void MEASURE::begin( int scale_100 )
     BaseType_t measure_taskCreated = xTaskCreate (vTaskMeasure, "Measure", MEASURE_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL);
     #endif
 }
+
+
+// Latest "raw" voltage mearurement result [mV]
+int MEASURE::mV( void )
+{   return _mV;  }
 
 
 // Latest "raw" current measurement result [mA]

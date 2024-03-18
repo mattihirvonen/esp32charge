@@ -95,6 +95,7 @@ const char * UTIL::charge( int args, const char *arg1 )
         return "[charge] invalid argument";
     }
 
+    int  mV    = Measure.mV();
     int  mA1s  = Measure.mA1s();   // Charging current without efficiency
     int  mAs   = Measure.mAs();    // Charging sum with efficiency
     int  mAh   = mAs / 3600;
@@ -104,7 +105,7 @@ const char * UTIL::charge( int args, const char *arg1 )
     mA1s = abs( mA1s );
     mAs  = abs( mAs);
     mAh  = abs( mAh );
-    snprintf( s, sizeof(s), "charge = %c%i.%03i  %c%i.%03i  %c%i.%03i",
+    snprintf( s, sizeof(s), "charge = %i.%03i  %c%i.%03i  %c%i.%03i  %c%i.%03i", mV / 1000, mV % 1000,
                 sign1, mA1s / 1000, mA1s % 1000, sign, mAs / 1000, mAs % 1000, sign, mAh / 1000, mAh % 1000 );
 
     return s;

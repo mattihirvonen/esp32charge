@@ -13,6 +13,7 @@ class MEASURE
 
         void  begin( int scale_100 );
 
+        int   mV();
         int   mA();
         int   mAs();
         int   mA1s();
