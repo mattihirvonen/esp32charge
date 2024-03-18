@@ -101,6 +101,7 @@ void vTaskMeasure( void * pvParameters )
 
     while ( 1 )
     {
+        int sum_mV   = 0;
         int sum_mA1s = 0;
         int sum_mAs  = 0;
         int samples  = 0;
@@ -136,7 +137,9 @@ void vTaskMeasure( void * pvParameters )
             // - neg.input: battery terminal (bus voltage to ground measurement terminal)
             // - pos.input: load    terminal
 
-            int mA_charge,  mA = INA.shunt_uV() / ( _Rshunt / 1000 );
+            int mA_charge;
+            int mA =  INA.shunt_uV() / ( _Rshunt / 1000 );
+            int mV = (INA.bus_mV() * 14150) / 14220;
 
             mA = (mA * _scale ) / 100;
 
@@ -146,6 +149,7 @@ void vTaskMeasure( void * pvParameters )
             if ( msDelay >= 0 )          // Some cases at start msDelay might be negative ?!!
             {
                 samples  += 1;
+                sum_mV   += mV;
                 sum_mA1s += mA;          // Raw charging current (measure with slow DMM)
                 sum_mAs  += mA_charge;   // Charging with efficiency                
                 _mA       = mA;          // Update "raw" current  measuremeunt result
@@ -155,7 +159,7 @@ void vTaskMeasure( void * pvParameters )
         // Update one time per second
         if ( samples )
         {
-            _mV    = INA.bus_mV();       // 14150 / 14220;
+            _mV    = sum_mV   / samples;
             _mA1s  = sum_mA1s / samples;
             _mAs  += sum_mAs  / samples;
         }
