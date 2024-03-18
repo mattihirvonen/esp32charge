@@ -17,7 +17,7 @@
 #define LINESIZE   256
 #define SA struct  sockaddr
 
-#define USERNAME   "root",
+#define USERNAME   "root"
 #define PASSWORD   "rootpassword"
 #define LOGFILE    "charge.log"
 
