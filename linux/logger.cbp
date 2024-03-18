@@ -6,6 +6,7 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
+			<Script file="lib_finder.script" />
 			<Target title="Debug">
 				<Option output="bin/Debug/logger" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
@@ -31,6 +32,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="bin/Debug/logger.log" />
 		<Unit filename="logger.c">
 			<Option compilerVar="CC" />
 		</Unit>

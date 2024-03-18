@@ -1,3 +1,4 @@
+#if 0
 
 #include  <arpa/inet.h>      // MinGW - inet_addr()
 #include  <netdb.h>          // MinGW
@@ -177,11 +178,10 @@ void logger( int sockfd, const char *filename )
         }
     }
     fclose( logfile );
-
 }
 
 
-int main( int argc, char *argv[] )
+int lnx_main( int argc, char *argv[] )
 {
     int                 sockfd,   connfd;
     struct sockaddr_in  servaddr, cli;
@@ -223,3 +223,325 @@ int main( int argc, char *argv[] )
 
     return 0;
 }
+
+
+//====================
+#else
+
+// https://learn.microsoft.com/en-us/windows/win32/winsock/complete-client-code
+
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+
+// Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
+//#pragma comment (lib, "Ws2_32.lib")
+//#pragma comment (lib, "Mswsock.lib")
+//#pragma comment (lib, "AdvApi32.lib")
+
+
+#define IPADDR          "192.168.1.152"     // argv[1]
+#define DEFAULT_PORT    "23"
+#define DEFAULT_BUFLEN  512
+#define LINESIZE        DEFAULT_BUFLEN
+
+int kbhit(void);
+
+
+void setNonBlock( SOCKET ConnectSocket )
+{
+    #define O_NONBLOCK 1
+
+    unsigned long  ul = O_NONBLOCK;
+
+    int  nRet = ioctlsocket(ConnectSocket, FIONBIO, (unsigned long *) &ul);
+    if (nRet == SOCKET_ERROR)
+    {
+        // Failed to put the socket into non-blocking mode
+        printf("Error: O_NONBLOCK fail\n");
+        exit(1);
+    }
+}
+
+
+int sendBuffer( SOCKET ConnectSocket, char *sendbuf )
+{
+    int iResult;
+
+    iResult = send( ConnectSocket, sendbuf, (int)strlen(sendbuf), 0 );
+    if (iResult == SOCKET_ERROR) {
+        printf("send failed with error: %d\n", WSAGetLastError());
+        closesocket(ConnectSocket);
+        WSACleanup();
+        return -1;
+    }
+//  printf("Bytes Sent: %d\n", iResult);
+    Sleep( 1000 );
+    return iResult;
+}
+
+
+int recvBuffer( SOCKET ConnectSocket, char *recvbuf, int recvbuflen )
+{
+    int iResult;
+
+    memset( recvbuf, 0, recvbuflen );
+    // Receive until the peer closes the connection
+    do {
+
+        iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+        if ( iResult > 0 ) {
+//          printf("Bytes received: %d\n%s\n", iResult, recvbuf);
+        }
+        else if ( iResult == 0 )
+            printf("Connection closed\n");
+        else {
+            int  errorCode =  WSAGetLastError();
+            if ( errorCode == WSAEWOULDBLOCK ) break;
+            printf("recv failed with error: %d\n", errorCode);
+        }
+    } while( iResult > 0 );
+
+    return iResult;
+}
+
+
+void login( SOCKET ConnectSocket )
+{
+    char recvbuf[DEFAULT_BUFLEN];
+
+    // Receive "Hello" message and prompt "user"
+    recvBuffer( ConnectSocket, recvbuf, sizeof(recvbuf) );
+    // Send username
+    sendBuffer( ConnectSocket, "root\n" );
+    // Receive "password" request
+    recvBuffer( ConnectSocket, recvbuf, sizeof(recvbuf) );
+    // Send password
+    sendBuffer( ConnectSocket, "rootpassword\n" );
+    // Receive prompt
+    recvBuffer( ConnectSocket, recvbuf, sizeof(recvbuf) );
+}
+
+
+int stripCRLF( char *txt )
+{
+    char *endp;
+
+    if ( (endp = strstr(txt, "\r\n")) ) {
+         *endp = 0;
+    }
+    return endp ? 1 : 0;
+}
+
+
+int logdata( SOCKET ConnectSocket, char *buff, int size )
+{
+    #define true  1
+    #define false 0
+
+    char  tmp1[LINESIZE], tmp2[LINESIZE];
+
+    memset( tmp1, 0, sizeof(tmp1) );
+    memset( tmp2, 0, sizeof(tmp2) );
+
+    sendBuffer( ConnectSocket, "date\n" );
+    recvBuffer( ConnectSocket, tmp1,  sizeof(tmp1) );
+
+    sendBuffer( ConnectSocket, "charge\n" );
+    recvBuffer( ConnectSocket, tmp2,  sizeof(tmp2) );
+
+    char *timestamp  = strstr( tmp1, "20" );
+    char *chargedata = strstr( tmp2, "="  );
+
+    // NOTE: TCP is stream protocol and do not send allways full text line packets
+    // Lines might be fragmented to different TCP packets/ read function(s).
+    // Strategy: discard fragmented incomplete reads / packets.
+
+    if ( timestamp && chargedata )
+    {
+        int boo1 = stripCRLF(   timestamp );
+        int boo2 = stripCRLF( ++chargedata );
+
+        if ( boo1 && boo2 ) {
+            snprintf( buff, size, "%s - %s\n", chargedata, timestamp );
+            return true;
+        }
+        else {
+            snprintf( buff, size, "MISSING(CRLF)\n" );
+        }
+    }
+    else
+    {
+        if ( !timestamp ) {
+            snprintf( buff, size, "MISSING(timestamp):<%s>\n", tmp1 );
+        }
+        if ( !chargedata ) {
+            snprintf( buff, size, "MISSING(chargedata):<%s>\n", tmp2 );
+        }
+    }
+    return false;
+}
+
+
+void logger( SOCKET ConnectSocket, const char *filename )
+{
+    char buff[LINESIZE];
+    int  counter = 0;
+
+    FILE *logfile = fopen( filename, "a+" );
+    if ( !logfile ) exit(1);
+
+//  Require ENTER button !!!
+    while( !kbhit() )
+    {
+        if ( counter % 10 == 0 )
+        {
+            int  boo = logdata( ConnectSocket, buff, LINESIZE );
+            if ( boo )
+            {
+                 printf( "%s", buff );
+                 fwrite( buff, 1, strlen(buff), logfile );
+            }
+            counter += 2;
+        }
+        else
+        {
+            Sleep( 1000 );
+            counter += 1;
+        }
+    }
+    fclose( logfile );
+}
+
+
+int __cdecl main(int argc, char **argv)
+{
+    WSADATA wsaData;
+    SOCKET ConnectSocket = INVALID_SOCKET;
+    struct addrinfo *result = NULL,
+                    *ptr = NULL,
+                    hints;
+
+    char recvbuf[DEFAULT_BUFLEN];
+    int iResult;
+    int recvbuflen = DEFAULT_BUFLEN;
+
+    #if 0
+    // Validate the parameters
+    if (argc != 2) {
+        printf("usage: %s server-name\n", argv[0]);
+        return 1;
+    }
+    #endif
+
+    // Initialize Winsock
+    iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (iResult != 0) {
+        printf("WSAStartup failed with error: %d\n", iResult);
+        return 1;
+    }
+
+    ZeroMemory( &hints, sizeof(hints) );
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    // Resolve the server address and port
+    iResult = getaddrinfo(IPADDR, DEFAULT_PORT, &hints, &result);
+    if ( iResult != 0 ) {
+        printf("getaddrinfo failed with error: %d\n", iResult);
+        WSACleanup();
+        return 1;
+    }
+
+    // Attempt to connect to an address until one succeeds
+    for(ptr=result; ptr != NULL ;ptr=ptr->ai_next) {
+
+        // Create a SOCKET for connecting to server
+        ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
+            ptr->ai_protocol);
+        if (ConnectSocket == INVALID_SOCKET) {
+            printf("socket failed with error: %d\n", WSAGetLastError());
+            WSACleanup();
+            return 1;
+        }
+
+        // Connect to server.
+        iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+        if (iResult == SOCKET_ERROR) {
+            closesocket(ConnectSocket);
+            ConnectSocket = INVALID_SOCKET;
+            continue;
+        }
+        break;
+    }
+
+    freeaddrinfo(result);
+
+    if (ConnectSocket == INVALID_SOCKET) {
+        printf("Unable to connect to server!\n");
+        WSACleanup();
+        return 1;
+    }
+    Sleep(1000);
+
+    setNonBlock( ConnectSocket );
+
+    //-----------------------------------------------------------------------
+
+    login(  ConnectSocket );
+    #if 1
+    logger( ConnectSocket, "logger.log" );
+    #else
+
+    // Send "date" command
+    sendBuffer( ConnectSocket, "date\n" );
+    // Receive "date" command response
+    recvBuffer( ConnectSocket, recvbuf, sizeof(recvbuf) );
+    // Send "charge" command
+    sendBuffer( ConnectSocket, "charge\n" );
+    // Receive "date" command response
+    recvBuffer( ConnectSocket, recvbuf, sizeof(recvbuf) );
+    while ( !kbhit() );
+    #endif
+
+    //-----------------------------------------------------------------------
+
+    // shutdown the connection since no more data will be sent
+    iResult = shutdown(ConnectSocket, SD_SEND);
+    if (iResult == SOCKET_ERROR) {
+        printf("shutdown failed with error: %d\n", WSAGetLastError());
+        closesocket(ConnectSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    // Receive until the peer closes the connection
+    do {
+
+        iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+        if ( iResult > 0 )
+            printf("Bytes received: %d\n%s\n", iResult, recvbuf);
+        else if ( iResult == 0 )
+            printf("Connection closed\n");
+        else {
+            int  errorCode =  WSAGetLastError();
+            if ( errorCode == WSAEWOULDBLOCK ) break;
+            printf("recv failed with error: %d\n", errorCode);
+        }
+
+    } while( iResult > 0 );
+
+    // cleanup
+    closesocket(ConnectSocket);
+    WSACleanup();
+
+    return 0;
+}
+
+#endif
