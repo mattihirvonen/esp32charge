@@ -2,6 +2,9 @@
 // File:  util.cpp
 //
 
+// Ref: how to add application OTA update
+// https://lastminuteengineers.com/esp32-ota-updates-arduino-ide/
+
 #include  <WiFi.h>
 // hard reset by triggering watchdog
 #include  <esp_int_wdt.h>
