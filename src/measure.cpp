@@ -1,4 +1,42 @@
 
+#if 0  //=======================================================================
+
+Voltage meters are also used to indicate battery state of charge. Digital voltmeters provide
+the accuracy to read the voltage in hundredths and are relatively inexpensive and easy to
+use. The main problem with relying on voltage reading is the high degree of battery voltage
+variation through out the day. Battery voltage reacts highly to charging and discharging. As a
+battery is charged the indicated voltage increases and, as discharging occurs, the indicated
+voltage decreases. With experience, one can accurately determine state of charge using a
+voltmeter.
+
+Percentage  12 Volt           Specific 
+of Charge   Battery           Gravity
+            Voltage
+--------------------------------------
+   100      12.70             1.265
+   95       12.64             1.257
+   90       12.58             1.249
+   85       12.52             1.241
+   80       12.46             1.233
+   75       12.40             1.225
+   70       12.36             1.218
+   65       12.32             1.211
+   60       12.28             1.204
+   55       12.24             1.197
+   50       12.20             1.190  (some tables claims 60% at 12.20V)
+   45       12.16             1.183
+   40       12.12             1.176
+   35       12.08             1.169
+   30       12.04             1.162
+   25       12.00             1.155
+   20       11.98             1.148
+   15       11.96             1.141
+   10       11.94             1.134
+   5        11.92             1.127
+Discharged  11.90             1.120
+
+#endif //=======================================================================
+
 #include <stdint.h>
 #include "Arduino.h"
 #include <Wire.h>
@@ -39,12 +77,14 @@ INA219  INA( INA219_ADDRESS );
 static volatile int started = 0;        // allow to start only one measurement task
 static volatile int timingDelay[22];    // task's measured timing statistics 
                                         //
-static volatile int _mV;                // "raw" voltage measurement result in milli volts
-static volatile int _mA;                // "raw" current measurement result in milli amperes
-static volatile int _mAs = 0;           // Cumulative charge in milli ampere seconds
-static volatile int _mA1s;              // Average current measurement over 1 second period
+static volatile int _uV;                // "raw" shunt voltage measurement result in micro volts
+static volatile int _mV;                // "raw" bus   voltage measurement result in milli volts
+static volatile int _mA;                // "raw" bus   current measurement result in milli amperes
+static volatile int _mAs = 0;           // cumulative charge in milli ampere seconds
+static volatile int _mA1s;              // average current measurement over 1 second period
+static volatile int _compU  = 50;       // bus voltage sense wire loss compensation  [mV/A]
+static volatile int _scaleI = 100;      // current scaling normalize to 100%
 static volatile int _Rshunt = 100000;   // micro ohm
-static volatile int _scale  = 100;      // normalize to 100
 static volatile int _efficiency = 80;   // battery charging efficiency [%]
 
 // Trick: Set "scale" multiplier to 612 (== 6.12x)
@@ -101,7 +141,8 @@ void vTaskMeasure( void * pvParameters )
 
     while ( 1 )
     {
-        int sum_mV   = 0;
+        int sum_uV   = 0;    // Shunt
+        int sum_mV   = 0;    // Bus
         int sum_mA1s = 0;
         int sum_mAs  = 0;
         int samples  = 0;
@@ -137,11 +178,13 @@ void vTaskMeasure( void * pvParameters )
             // - neg.input: battery terminal (bus voltage to ground measurement terminal)
             // - pos.input: load    terminal
 
+            int uV = INA.shunt_uV();
             int mA_charge;
-            int mA =  INA.shunt_uV() / ( _Rshunt / 1000 );
+            int mA =  uV / ( _Rshunt / 1000 );
             int mV = (INA.bus_mV() * 14150) / 14220;
 
-            mA = (mA * _scale ) / 100;
+            mA  = (mA * _scaleI ) / 100;
+            mV -= (mA * _compU  ) / 1000;
 
             if ( mA >=0 ) {  mA_charge = ( mA * _efficiency ) / 100;  }    // Charging
             else          {  mA_charge =   mA;                        }    // Discharging
@@ -149,6 +192,7 @@ void vTaskMeasure( void * pvParameters )
             if ( msDelay >= 0 )          // Some cases at start msDelay might be negative ?!!
             {
                 samples  += 1;
+                sum_uV   += uV;
                 sum_mV   += mV;
                 sum_mA1s += mA;          // Raw charging current (measure with slow DMM)
                 sum_mAs  += mA_charge;   // Charging with efficiency                
@@ -159,6 +203,7 @@ void vTaskMeasure( void * pvParameters )
         // Update one time per second
         if ( samples )
         {
+            _uV    = sum_uV   / samples;
             _mV    = sum_mV   / samples;
             _mA1s  = sum_mA1s / samples;
             _mAs  += sum_mAs  / samples;
@@ -192,7 +237,7 @@ MEASURE::~MEASURE()
 // Arduino style module initialization
 void MEASURE::begin( int scale_100 )
 {
-    _scale = scale_100;
+    _scaleI = scale_100;
 
     if ( started ) {    // Run only one measurement task 
          return;
@@ -212,7 +257,12 @@ void MEASURE::begin( int scale_100 )
 }
 
 
-// Latest "raw" voltage mearurement result [mV]
+// Latest "raw" shunt voltage mearurement result [uV]
+int MEASURE::uV( void )
+{   return _uV;  }
+
+
+// Latest "raw" bus voltage mearurement result [mV]
 int MEASURE::mV( void )
 {   return _mV;  }
 
@@ -240,12 +290,18 @@ int MEASURE::setRshunt( int micro_ohm )
 }
 
 
-int MEASURE::setScale( int scale_100 )
+int MEASURE::setIscale( int scale_100 )
 {
-    _scale = scale_100;
-    return _scale;
+    _scaleI = scale_100;
+    return _scaleI;
 }
 
+
+int MEASURE::setUcomp( int mVA )
+{
+    _compU = mVA;
+    return _compU;
+}
 
 // Set battery charge state
 // Use for reset/init cumulative sum calculation

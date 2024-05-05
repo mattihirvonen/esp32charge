@@ -13,13 +13,15 @@ class MEASURE
 
         void  begin( int scale_100 );
 
-        int   mV();
+        int   uV();    // Shunt
+        int   mV();    // Bus
         int   mA();
         int   mAs();
         int   mA1s();
 
+        int   setUcomp(  int mVA );
         int   setRshunt( int micro_ohm );
-        int   setScale( int scale_100 );
+        int   setIscale( int scale_100 );
         int   setAh( int Ah );
         int   setEfficiency( int percent );
         int   getEfficiency( void );

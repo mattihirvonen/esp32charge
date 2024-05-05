@@ -4,12 +4,15 @@
 #include  <Wire.h>
 #include  "INA.h"
 
-#define  RESET_BIT  (1<<15)
+#define   RESET_BIT  (1<<15)
 
-#define  CONFIG_BRNG          0x1   // 32V
-#define  CONFIG_PG_GAIN       0x3   // 320 mV - gain /8
-#define  CONFIG_ADC_SAMPLES   0xc   // 16 samples 8.51 ms
-#define  CONFIG_MODE          0x7   // Shunt and bus, continunuous
+#define   CONFIG_BRNG          0x1   // 32V
+#define   CONFIG_PG_GAIN       0x0   // 40  mV - gain /1
+//#define CONFIG_PG_GAIN       0x1   // 80  mV - gain /2
+//#define CONFIG_PG_GAIN       0x2   // 160 mV - gain /4
+//#define CONFIG_PG_GAIN       0x3   // 320 mV - gain /8
+#define   CONFIG_ADC_SAMPLES   0xc   // 16 samples 8.51 ms
+#define   CONFIG_MODE          0x7   // Shunt and bus, continunuous
 
 // Reset default value is 0x399f
 #define  CONFIG_VALUE  ((CONFIG_BRNG<<13) | (CONFIG_PG_GAIN<<11) | (CONFIG_ADC_SAMPLES<<7) | (CONFIG_ADC_SAMPLES<<3) | CONFIG_MODE)
