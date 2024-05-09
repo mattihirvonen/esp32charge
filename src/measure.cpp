@@ -82,10 +82,20 @@ static volatile int _mV;                // "raw" bus   voltage measurement resul
 static volatile int _mA;                // "raw" bus   current measurement result in milli amperes
 static volatile int _mAs = 0;           // cumulative charge in milli ampere seconds
 static volatile int _mA1s;              // average current measurement over 1 second period
-static volatile int _compU  = 50;       // bus voltage sense wire loss compensation  [mV/A]
-static volatile int _scaleI = 100;      // current scaling normalize to 100%
-static volatile int _Rshunt = 100000;   // micro ohm
 static volatile int _efficiency = 80;   // battery charging efficiency [%]
+static volatile int _offset_err = -10;  // input offset error [uV]
+
+#if 1
+// Real boat
+static volatile int _Rshunt = 154;      // micro ohm
+static volatile int _scaleI = 100;      // current scaling normalize to 100%
+static volatile int _compU  = 0;        // bus voltage sense wire loss compensation  [mV/A]
+#else
+// Home test
+static volatile int _Rshunt = 100000;   // micro ohm
+static volatile int _scaleI = 612;      // current scaling normalize to 100%
+static volatile int _compU  = 50;       // bus voltage sense wire loss compensation  [mV/A]
+#endif
 
 // Trick: Set "scale" multiplier to 612 (== 6.12x)
 // Notify wiring resistances in my measurement test circuit
@@ -178,10 +188,10 @@ void vTaskMeasure( void * pvParameters )
             // - neg.input: battery terminal (bus voltage to ground measurement terminal)
             // - pos.input: load    terminal
 
-            int uV =  INA.shunt_uV();
+            int uV =  INA.shunt_uV() - _offset_err;
             int mV = (INA.bus_mV() * 14150) / 14220;
 
-            int mA =  uV / ( _Rshunt / 1000 );
+            int mA = (1000 * uV) / _Rshunt;
             int mA_charge;
  
             mA  = (mA * _scaleI ) / 100;
