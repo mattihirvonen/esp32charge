@@ -318,11 +318,14 @@
             dmesg ("[time][cronDaemon] is running on core ", xPortGetCoreID ());
         #endif
         Serial.printf ("[%10lu] %s\r\n", millis (), "[time][cronDaemon] started");
+
+        #if WIFI_ENABLE_NTP
         do {     // try to set/synchronize the time, retry after 1 minute if unsuccessfull 
             delay (15000);
             if (!*ntpDate ()) break; // success
             delay (45000);
         } while (!time ());
+        #endif
 
         void (* cronHandler) (char *) = (void (*) (char *)) ptrCronHandler;  
         unsigned long lastSyncMillis = millis (); 
@@ -331,7 +334,9 @@
             delay (10);
 
             // 1. synchronize time with NTP servers
-            if (millis () - lastSyncMillis >= 86400000) { ntpDate (); lastSyncMillis = millis (); } 
+            #if WIFI_ENABLE_NTP
+            if (millis () - lastSyncMillis >= 86400000) { ntpDate (); lastSyncMillis = millis (); }
+            #endif
 
             // 2. execute cron commands from cron table
             time_t now = time (NULL);
@@ -444,14 +449,11 @@
                   bool created = false;
                   File f = fileSystem.open ((char *) "/etc/ntp.conf", "w", true);
                   if (f) {
-                      #if WIFI_ENABLE_NTP
                       String defaultContent = F ( "# configuration for NTP - reboot for changes to take effect\r\n\r\n"
                                                   "server1 " DEFAULT_NTP_SERVER_1 "\r\n"
                                                   "server2 " DEFAULT_NTP_SERVER_2 "\r\n"
                                                   "server3 " DEFAULT_NTP_SERVER_3 "\r\n");
-                      #else
-                      String defaultContent = F ( "# configuration for NTP - reboot for changes to take effect\r\n\r\n" );
-                      #endif                            
+                            
                       created = (f.printf (defaultContent.c_str ()) == defaultContent.length ());
                       f.close ();
 
