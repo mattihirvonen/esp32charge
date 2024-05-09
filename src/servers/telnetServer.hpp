@@ -50,6 +50,7 @@
 
 #ifndef __TELNET_SERVER__
     #define __TELNET_SERVER__
+    #define SHOW_COMPILE_TIME_INFORMATION
 
     #ifdef SHOW_COMPILE_TIME_INFORMATION
         #ifndef __FILE_SYSTEM__
