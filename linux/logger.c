@@ -249,6 +249,7 @@ int lnx_main( int argc, char *argv[] )
 #define DEFAULT_PORT    "23"
 #define DEFAULT_BUFLEN  512
 #define LINESIZE        DEFAULT_BUFLEN
+#define POLL_PERIOD_s   1                   // [s]
 
 int kbhit(void);
 
@@ -281,7 +282,7 @@ int sendBuffer( SOCKET ConnectSocket, char *sendbuf )
         return -1;
     }
 //  printf("Bytes Sent: %d\n", iResult);
-    Sleep( 1000 );
+    Sleep( 500 );
     return iResult;
 }
 
@@ -399,7 +400,9 @@ void logger( SOCKET ConnectSocket, const char *filename )
 //  Require ENTER button !!!
     while( !kbhit() )
     {
-        if ( counter % 10 == 0 )
+        // sendBuffer() have 500 ms delay, logdata() send commands: date & charge
+
+        if ( (++counter % POLL_PERIOD_s) == 0 )
         {
             int  boo = logdata( ConnectSocket, buff, LINESIZE );
             if ( boo )
@@ -407,12 +410,10 @@ void logger( SOCKET ConnectSocket, const char *filename )
                  printf( "%s", buff );
                  fwrite( buff, 1, strlen(buff), logfile );
             }
-            counter += 2;
         }
         else
         {
             Sleep( 1000 );
-            counter += 1;
         }
     }
     fclose( logfile );
@@ -427,11 +428,16 @@ int __cdecl main(int argc, char **argv)
                     *ptr = NULL,
                     hints;
 
+    char ipaddr[128] = IPADDR;
     char recvbuf[DEFAULT_BUFLEN];
-    int iResult;
-    int recvbuflen = DEFAULT_BUFLEN;
+    int  iResult;
+    int  recvbuflen = DEFAULT_BUFLEN;
 
-    #if 0
+    #if 1
+    if (argc > 1) {
+        strncpy( ipaddr, argv[1], sizeof(ipaddr) );
+    }
+    #else
     // Validate the parameters
     if (argc != 2) {
         printf("usage: %s server-name\n", argv[0]);
@@ -452,9 +458,9 @@ int __cdecl main(int argc, char **argv)
     hints.ai_protocol = IPPROTO_TCP;
 
     // Resolve the server address and port
-    iResult = getaddrinfo(IPADDR, DEFAULT_PORT, &hints, &result);
+    iResult = getaddrinfo(ipaddr, DEFAULT_PORT, &hints, &result);
     if ( iResult != 0 ) {
-        printf("getaddrinfo failed with error: %d\n", iResult);
+        printf("getaddrinfo (%s) failed with error: %d\n", ipaddr, iResult);
         WSACleanup();
         return 1;
     }
