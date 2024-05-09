@@ -337,12 +337,6 @@
   
       #ifdef __FILE_SYSTEM__
         if (fileSystem.mounted ()) {
-          #if WIFI_DELETE_CONF
-          // MH: remove existing configuration /network/interfaces
-          if (fileSystem.isFile ((char *) "/network/interfaces")) {
-              fileSystem.deleteFile ((char *) "/network/interfaces");
-          }
-          #endif // WIFI_DELETE_CONF
           // read interfaces configuration from /network/interfaces, create a new one if it doesn't exist
           if (!fileSystem.isFile ((char *) "/network/interfaces")) {
             // create directory structure
@@ -431,12 +425,6 @@
           }
 
 
-          #if WIFI_DELETE_CONF
-          // MH: remove existing configuration /etc/wpa_supplicant/wpa_supplicant.conf
-          if (fileSystem.isFile ((char *) "/etc/wpa_supplicant/wpa_supplicant.conf")) {
-              fileSystem.deleteFile ((char *) "/etc/wpa_supplicant/wpa_supplicant.conf");
-          }
-          #endif // WIFI_DELETE_CONF
           // read STAtion credentials from /etc/wpa_supplicant/wpa_supplicant.conf, create a new one if it doesn't exist
           if (!fileSystem.isFile ((char *) "/etc/wpa_supplicant/wpa_supplicant.conf")) {
             // create directory structure
@@ -481,12 +469,6 @@
               }
           }
 
-          #if WIFI_DELETE_CONF
-          // MH: remove existing configuration /etc/dhcpcd.conf
-          if (fileSystem.isFile ((char *) "/etc/dhcpcd.conf")) {
-              fileSystem.deleteFile ((char *) "/etc/dhcpcd.conf");
-          }
-          #endif // WIFI_DELETE_CONF
           // read A(ccess) P(oint) configuration from /etc/dhcpcd.conf, create a new one if it doesn't exist
           if (!fileSystem.isFile ((char *) "/etc/dhcpcd.conf")) {
             // create directory structure
@@ -536,12 +518,6 @@
           }
 
 
-          #if WIFI_DELETE_CONF
-          // MH: remove existing configuration /etc/hostapd/hostapd.conf
-          if (fileSystem.isFile ((char *) "/etc/hostapd/hostapd.conf")) {
-              fileSystem.deleteFile ((char *) "/etc/hostapd/hostapd.conf");
-          }
-          #endif // WIFI_DELETE_CONF
           // read A(ccess) P(oint) credentials from /etc/hostapd/hostapd.conf, create a new one if it doesn't exist
           if (!fileSystem.isFile ((char *) "/etc/hostapd/hostapd.conf")) {
             // create directory structure

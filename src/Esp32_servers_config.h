@@ -1,6 +1,12 @@
 // Esp32_web_ftp_telnet_server_template configuration
 // you can skip some files #included if you don't need the whole functionality
 
+#define WIFI_DELETE_CONF      1   // Delete existing network configuration files (create new files at boot)
+#define WIFI_ENABLE_STATION   0   // Enable STA(tion) mode
+#define WIFI_ENABLE_DHCP      0   // Select DHCP or fixed IP in STA(tion) mode 
+#define WIFI_ENABLE_AP        1   // Enable A(ccess) P(point) mode
+#define WIFI_ENABLE_NTP       0
+
 
 // uncomment the following line to get additional compile-time information about how the project gets compiled
 // #define SHOW_COMPILE_TIME_INFORMATION
@@ -15,9 +21,11 @@
 // 1. TIME:    #define which time settings, wil be used with time_functions.h - will be included later
 // define which 3 NTP servers will be called to get current GMT (time) from
 // this information will be written into /etc/ntp.conf file if file_system.h will be included
+#if     WIFI_ENABLE_NTP
 #define DEFAULT_NTP_SERVER_1 "1.si.pool.ntp.org"  // <- replace with your information
 #define DEFAULT_NTP_SERVER_2 "2.si.pool.ntp.org"  // <- replace with your information
 #define DEFAULT_NTP_SERVER_3 "3.si.pool.ntp.org"  // <- replace with your information
+#endif 
 // define time zone to calculate local time from GMT
 //#define TZ "CET-1CEST,M3.5.0,M10.5.0/3"   // default: Europe/Ljubljana, or select another (POSIX) time zones: https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
   #define TZ "EET-2EEST,M3.5.0/3,M10.5.0/4"
@@ -31,23 +39,16 @@
 // 3. NETWORK:     #define how ESP32 will use the network
 // ESP device can operate both WiFi modes same time: AP and STATION
 
-#define WIFI_DELETE_CONF      0   // Delete existing network configuration files (create new files at boot)
-#define WIFI_ENABLE_AP        1   // Enable A(ccess) P(point) mode
-#define WIFI_ENABLE_STATION   1   // Enable STA(tion) mode
-#define WIFI_ENABLE_DHCP      1   // Select DHCP or fixed IP in STA(tion) mode 
-
 #if WIFI_ENABLE_STATION
 
 // STA(tion)
 // #define how ESP32 will connecto to WiFi router
 // this information will be written into /etc/wpa_supplicant/wpa_supplicant.conf file if file_system.h will be included
 // if these #definitions are missing STAtion will not be set up
-// #define DEFAULT_STA_SSID                          "YOUR_STA_SSID"       // <- replace with your information
-// #define DEFAULT_STA_PASSWORD                      "YOUR_STA_PASSWORD"   // <- replace with your information
-   #define DEFAULT_STA_SSID                          "????????"            // <- replace with your information
-   #define DEFAULT_STA_PASSWORD                      "????????"            // <- replace with your information
+   #define DEFAULT_STA_SSID                          "YOUR_STA_SSID"       // <- replace with your information
+   #define DEFAULT_STA_PASSWORD                      "YOUR_STA_PASSWORD"   // <- replace with your information
 
-#if ! WIFI_ENABLE_DHCP
+#if WIFI_ENABLE_DHCP == 0
 
 // the use of DHCP or static IP address wil be set in /network/interfaces if fileSystem.hpp is included.
 // The following is information needed for static IP configuration.
@@ -63,8 +64,10 @@
    #define DEFAULT_STA_DNS_1                         "193.189.160.13"   // <- replace with your information
    #define DEFAULT_STA_DNS_2                         "193.189.160.23"   // <- replace with your information
 
-#endif // WIFI_ENABLE_DHCP
-#endif // WIFI_ENABLE_STATION
+#endif  // WIFI_ENABLE_DHCP
+#else   // WIFI_ENABLE_STATION
+   #define DEFAULT_STA_SSID ""    // set it to "" if you don't want ESP32 connect to router
+#endif  // WIFI_ENABLE_STATION
 
 #if WIFI_ENABLE_AP
 
@@ -81,6 +84,8 @@
    #define DEFAULT_AP_IP                             "192.168.2.1"      // <- replace with your information
    #define DEFAULT_AP_SUBNET_MASK                    "255.255.255.0"    // <- replace with your information
 
+#else
+   #define DEFAULT_AP_SSID ""     // set it to "" if you don't want ESP32 to act as AP 
 #endif // WIFI_ENABLE_AP
 
 
