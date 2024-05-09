@@ -178,11 +178,12 @@ void vTaskMeasure( void * pvParameters )
             // - neg.input: battery terminal (bus voltage to ground measurement terminal)
             // - pos.input: load    terminal
 
-            int uV = INA.shunt_uV();
-            int mA_charge;
-            int mA =  uV / ( _Rshunt / 1000 );
+            int uV =  INA.shunt_uV();
             int mV = (INA.bus_mV() * 14150) / 14220;
 
+            int mA =  uV / ( _Rshunt / 1000 );
+            int mA_charge;
+ 
             mA  = (mA * _scaleI ) / 100;
             mV -= (mA * _compU  ) / 1000;
 
