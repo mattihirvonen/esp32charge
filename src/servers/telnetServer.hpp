@@ -46,7 +46,7 @@
     // fixed size strings
     #include "fsString.h"
 
-    
+
 
 #ifndef __TELNET_SERVER__
     #define __TELNET_SERVER__
