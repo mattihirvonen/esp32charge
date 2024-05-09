@@ -14,9 +14,17 @@
     #define HOSTNAME                  "MyESP32Server"       // define the name of your ESP32 here
     #define MACHINETYPE               "ESP32 NodeMCU"       // describe your hardware here
     // tell ESP32 how to connect to your WiFi router if this is needed
-    #define DEFAULT_STA_SSID          "YOUR_STA_SSID"       // define default WiFi settings  
-    #define DEFAULT_STA_PASSWORD      "YOUR_STA_PASSWORD"
+    #if 0
+//  #define DEFAULT_STA_SSID          "YOUR_STA_SSID"       // define default WiFi settings
+    #else                                                   // See: "network.h" - if (*staSSID) {...}
+    #define DEFAULT_STA_SSID          ""                    // set it to "" if you don't want ESP32 connect to router
+    #endif
+//  #define DEFAULT_STA_PASSWORD      "YOUR_STA_PASSWORD"
+//  #define DEFAULT_STA_SSID          "as66"                // define default WiFi settings  
+//  #define DEFAULT_STA_PASSWORD      "lankaton"
+
     // tell ESP32 not to set up AP if it is not needed
+    // AP's default IP is 192.168.0.1, where is running DHCP server
     #define DEFAULT_AP_SSID           "ESP32-telnet"        // set it to "" if you don't want ESP32 to act as AP 
     #define DEFAULT_AP_PASSWORD       "password"            // must have at leas 8 characters
   
