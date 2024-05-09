@@ -444,11 +444,15 @@
                   bool created = false;
                   File f = fileSystem.open ((char *) "/etc/ntp.conf", "w", true);
                   if (f) {
+                      #if WIFI_ENABLE_NTP
                       String defaultContent = F ( "# configuration for NTP - reboot for changes to take effect\r\n\r\n"
                                                   "server1 " DEFAULT_NTP_SERVER_1 "\r\n"
                                                   "server2 " DEFAULT_NTP_SERVER_2 "\r\n"
                                                   "server3 " DEFAULT_NTP_SERVER_3 "\r\n");
-                        created = (f.printf (defaultContent.c_str ()) == defaultContent.length ());
+                      #else
+                      String defaultContent = F ( "# configuration for NTP - reboot for changes to take effect\r\n\r\n" );
+                      #endif                            
+                      created = (f.printf (defaultContent.c_str ()) == defaultContent.length ());
                       f.close ();
 
                       diskTrafficInformation.bytesWritten += defaultContent.length (); // update performance counter without semaphore - values may not be perfectly exact but we won't loose time this way
@@ -523,7 +527,7 @@
             } else {
                 Serial.printf ("[%10lu] [time][cronDaemon] file system not mounted, can't read or write configuration files\n", millis ());
             }
-        #else
+        #else // __FILE_SYSTEM__
 
             // set the default timezone
             setenv ("TZ", (char *) TZ, 1);

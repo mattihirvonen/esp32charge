@@ -1,11 +1,11 @@
 // Esp32_web_ftp_telnet_server_template configuration
 // you can skip some files #included if you don't need the whole functionality
 
-#define WIFI_DELETE_CONF      1   // Delete existing network configuration files (create new files at boot)
+#define CONF_DELETE_FILE      1   // Delete existing (network) configuration files (create new files at boot)
 #define WIFI_ENABLE_STATION   0   // Enable STA(tion) mode
 #define WIFI_ENABLE_DHCP      0   // Select DHCP or fixed IP in STA(tion) mode 
 #define WIFI_ENABLE_AP        1   // Enable A(ccess) P(point) mode
-#define WIFI_ENABLE_NTP       0
+#define WIFI_ENABLE_NTP       0   // See: time_functions.h
 
 
 // uncomment the following line to get additional compile-time information about how the project gets compiled

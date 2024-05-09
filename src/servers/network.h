@@ -336,7 +336,7 @@
       #endif
   
       #ifdef __FILE_SYSTEM__
-        if (fileSystem.mounted ()) {
+        if (fileSystem.mounted ()) { 
           // read interfaces configuration from /network/interfaces, create a new one if it doesn't exist
           if (!fileSystem.isFile ((char *) "/network/interfaces")) {
             // create directory structure

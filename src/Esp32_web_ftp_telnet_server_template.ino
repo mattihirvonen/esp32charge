@@ -335,7 +335,11 @@ void setup () {
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
     // Start measurement task
-    Measure.begin( 612 );
+    #if 0
+    Measure.begin( 612 );   // external 0.1 ohm with wires
+    #else
+    Measure.begin( 100 );   // internal 0.1 ohm with wires
+    #endif
 
     #ifdef FILE_SYSTEM
         // 1. Mount file system - this is the first thing to do since all the configuration files reside on the file system.
@@ -355,22 +359,28 @@ void setup () {
 
     // 2. Start cron daemon - it will synchronize internal ESP32's clock with NTP servers once a day and execute cron commands.
     // fileSystem.deleteFile ("/usr/share/zoneinfo");                         // contains timezone information           - deleting this file would cause creating default one
-    // fileSystem.deleteFile ("/etc/ntp.conf");                               // contains ntp server names for time sync - deleting this file would cause creating default one
-    // fileSystem.deleteFile ("/etc/crontab");                                // scontains cheduled tasks                - deleting this file would cause creating empty one
+       #if CONF_DELETE_FILE
+       fileSystem.deleteFile ("/etc/ntp.conf");                               // contains ntp server names for time sync - deleting this file would cause creating default one
+       fileSystem.deleteFile ("/etc/crontab");                                // contains scheduled tasks                - deleting this file would cause creating empty one
+       #endif
     startCronDaemon (cronHandlerCallback);
 
 
-    // 3. Write the default user management files /etc/passwd and /etc/passwd it they don't exist yet (it only makes sense with UNIX_LIKE_USER_MANAGEMENT).
-    // fileSystem.deleteFile ("/etc/passwd");                                 // contains users' accounts information    - deleting this file would cause creating default one
-    // fileSystem.deleteFile ("/etc/passwd");                                 // contains users' passwords               - deleting this file would cause creating default one
+    // 3. Write the default user management files /etc/passwd and /etc/shadow it they don't exist yet (it only makes sense with UNIX_LIKE_USER_MANAGEMENT).
+       #if CONF_DELETE_FILE
+       fileSystem.deleteFile ("/etc/passwd");                                 // contains users' accounts information    - deleting this file would cause creating default one
+       fileSystem.deleteFile ("/etc/shadow");                                 // contains users' passwords               - deleting this file would cause creating default one
+       #endif
     userManagement.initialize ();
 
 
     // 4. Start the WiFi (STAtion and/or A(ccess) P(oint), DHCP or static IP, depending on the configuration files.
-    // fileSystem.deleteFile ("/network/interfaces");                         // contation STA(tion) configuration       - deleting this file would cause creating default one
-    // fileSystem.deleteFile ("/etc/wpa_supplicant/wpa_supplicant.conf");     // contation STA(tion) credentials         - deleting this file would cause creating default one
-    // fileSystem.deleteFile ("/etc/dhcpcd.conf");                            // contains A(ccess) P(oint) configuration - deleting this file would cause creating default one
-    // fileSystem.deleteFile ("/etc/hostapd/hostapd.conf");                   // contains A(ccess) P(oint) credentials   - deleting this file would cause creating default one
+       #if CONF_DELETE_FILE
+       fileSystem.deleteFile ("/network/interfaces");                         // contation STA(tion) configuration       - deleting this file would cause creating default one
+       fileSystem.deleteFile ("/etc/wpa_supplicant/wpa_supplicant.conf");     // contation STA(tion) credentials         - deleting this file would cause creating default one
+       fileSystem.deleteFile ("/etc/dhcpcd.conf");                            // contains A(ccess) P(oint) configuration - deleting this file would cause creating default one
+       fileSystem.deleteFile ("/etc/hostapd/hostapd.conf");                   // contains A(ccess) P(oint) credentials   - deleting this file would cause creating default one
+       #endif
     startWiFi ();   
 
 
@@ -400,10 +410,13 @@ void setup () {
 
 
                     // ----- USED FOR DEMONSTRATION ONLY, YOU MAY FREELY DELETE THE FOLLOWING CODE -----
-                    cronTabAdd ("* * * * * * gotTime");  // triggers only once - when ESP32 reads time from NTP servers for the first time
+#if WIFI_ENABLE_STATION
+                    cronTabAdd ("* * * * * * gotTime");   // triggers only once - when ESP32 reads time from NTP servers for the first time
                     cronTabAdd ("0 0 0 1 1 * newYear'sGreetingsToProgrammer");  // triggers at the beginning of each year
+#endif
                     cronTabAdd ("0 * * * * * onMinute");  // triggers each minute at 0 seconds
-                    cronTabAdd ("0 0 * * * * onHour");  // triggers each hour at 0:0
+                    cronTabAdd ("0 0 * * * * onHour");    // triggers each hour at 0:0
+//#endif
                     //           | | | | | | |
                     //           | | | | | | |___ cron command, this information will be passed to cronHandlerCallback when the time comes
                     //           | | | | | |___ day of week (0 - 7 or *; Sunday=0 and also 7)
@@ -416,6 +429,8 @@ void setup () {
                     pinMode (LED_BUILTIN, OUTPUT | INPUT);
                     digitalWrite (LED_BUILTIN, LOW);
 
+                //  NTP.stop();
+                //  esp_sntp_stop();
 }
 
 
