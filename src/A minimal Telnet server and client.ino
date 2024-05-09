@@ -2,13 +2,6 @@
     A minimal Telnet server
 */
 
-// Current measurement task
-#include "measure.h"
-
-// Public object(s)
-MEASURE Measure;
-
-
 #include <WiFi.h>
 
   // include all .h and .hpp files for full functionality of telnetServer
@@ -24,8 +17,9 @@ MEASURE Measure;
     #define DEFAULT_STA_SSID          "YOUR_STA_SSID"       // define default WiFi settings  
     #define DEFAULT_STA_PASSWORD      "YOUR_STA_PASSWORD"
     // tell ESP32 not to set up AP if it is not needed
-    #define DEFAULT_AP_SSID           "ESP32"  // HOSTNAME       // set it to "" if you don't want ESP32 to act as AP 
-    #define DEFAULT_AP_PASSWORD       "YOUR_AP_PASSWORD"    // must have at leas 8 characters
+    #define DEFAULT_AP_SSID           "ESP32-telnet"        // set it to "" if you don't want ESP32 to act as AP 
+    #define DEFAULT_AP_PASSWORD       "password"            // must have at leas 8 characters
+  
   #include "./servers/network.h"              // some network telnet commands like "ping", "ifconfig", ... are also supported here
 
   // #include "./servers/time_functions.h"    // telnetServer can handle some time commands like "date", "ntpdate", ...

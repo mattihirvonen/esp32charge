@@ -45,22 +45,8 @@
     #include <esp_task_wdt.h>
     // fixed size strings
     #include "fsString.h"
-    #include "driver/adc.h"       // to use adc1_get_raw instead of analogRead
 
-    // Headers required with current sense MEASURE and ADC test application(s)
-    //#include "Arduino.h"
-    //#include "Wire.h"
-    #include "adcmeasure.h"       // Object(s):  ADCPU
-    #include "INA.h"              // Object(s):  INA
-    #include "util.h"             // Object(s):  UTIL
-
-    // External object(s)
-    extern INA219    INA;
-    extern UTIL      Utils;
-
-    // Public object(s)
-    ADCPU     ADC;
-
+    
 
 #ifndef __TELNET_SERVER__
     #define __TELNET_SERVER__
@@ -544,31 +530,6 @@
 
                if (argv0Is ("help"))      { return argc == 1 ? __help__ (tcn) : "Wrong syntax, use help"; }
 
-          else if (argv0Is ("adc"))       {
-                                              if (argc == 1) {  return __adc__ (0, 0);        }
-                                              if (argc == 2) {  return __adc__ (1, argv[1]);  }
-                                              return "adc command fail";
-                                          }
-
-          else if (argv0Is ("ina"))       {
-                                              if (argc == 1) {  return __ina__ (0, 0, 0);              }
-                                              if (argc == 2) {  return __ina__ (1, argv[1], 0);        }
-                                              if (argc == 3) {  return __ina__ (2, argv[1], argv[2]);  }
-                                              return "INA fail";
-                                          }
-
-          else if (argv0Is ("charge"))    {
-                                              if (argc == 1) {  return Utils.charge (0, 0);        }
-                                              if (argc == 2) {  return Utils.charge (1, argv[1]);  }
-                                              return "charge command fail";
-                                          }
-
-          else if (argv0Is ("fwupdate"))  {
-                                              if (argc == 1) {  return Utils.fwupdate (0, 0);         }
-                                              if (argc == 2) {  return Utils.fwupdate (1, argv[1]);   }
-                                              return "fwupdate command fail";
-                                          }
-
           else if (argv0Is ("clear"))     { return argc == 1 ? __clear__ () : "Wrong syntax, use clear"; }
                             
           else if (argv0Is ("uname"))     { return argc == 1 ? __uname__ () : "Wrong syntax, use uname"; }
@@ -983,65 +944,6 @@
                               ;
             sendTelnet (h);
             return "";                                            
-        }
-
-        const char *__adc__ ( int args, char *arg1 ) {
-
-            int gpio1 = atoi( arg1 );
-
-            #if CONFIG_IDF_TARGET_ESP32
-            if ((gpio1 < 32) || (39 < gpio1))  {
-              return "Wrong syntax, use adc [<GPIO>]   (where 32 <= GPIO <= 39)";
-            }
-            #elif CONFIG_IDF_TARGET_ESP32S3
-            if ((gpio1 < 0) || (10 < gpio1)) {
-              return "Wrong syntax, use adc [<GPIO>]   (where 0 <= GPIO <= 10)";
-            }
-            #else
-            #error ESP32 version not supported
-            #endif
-
-            // Mittaus: R=0.1 ohm, 3A -> 0.3V - gain 5.1 -> abt 1.53V (rounding error 2%)
-            // ADC scale:
-            // - 1192 abt 1020 mV -> 1167 abt 1.000 V
-            // - 1800 abt 1500 mV
-
-            char s[64];
-
-            #define AVERAGE 16
-
-            int adcvalue = ADC.gpio( gpio1, AVERAGE );
-            int mA       = ((1000 * adcvalue) / 1167) * 2;
-
-            if ( adcvalue != ERROR_ADC ) {
-              snprintf( s, sizeof(s), "gpio %i: adc = %i   %i.%02i A", gpio1, adcvalue, mA/1000, ((mA % 1000) / 10) );
-            }
-            else {
-              sniprintf( s, sizeof(s), "ERROR [adc] conversion on gpio %i", gpio1 );
-            }
-            if (sendTelnet (s) <= 0) return "sendTelnet fail";
-            return "";
-        }
-
-        const char *__ina__ ( int arg, char *arg1, char *arg2 ) {
-
-            char     s[64];
-            uint8_t  reg = 0;
-            uint16_t value = 0;
-            
-            if ( arg >= 1) {  reg   = strtol( arg1, NULL, 16 );  }
-            if ( arg >= 2) {  value = strtol( arg2, NULL, 16 );  }
-
-            int16_t  inavalue = INA.reg( arg, reg, value );
-
-            if ( inavalue != ERROR_ADC ) {
-              snprintf( s, sizeof(s), "ina [%i] = %04x", reg, inavalue );
-            }
-            else {
-              sniprintf( s, sizeof(s), "ERROR [INA] access" );
-            }
-            if (sendTelnet (s) <= 0) return "sendTelnet fail";
-            return "";
         }
 
         const char *__clear__ () { return "\x1b[2J"; } // ESC[2J = clear screen
