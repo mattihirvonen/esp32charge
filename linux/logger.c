@@ -12,10 +12,10 @@
 #include  <unistd.h>         // read(), write(), close()
 #include  "logger.h"
 
-#define IPADDR    "192.168.1.152"
+#define IPADDR    "192.168.2.1"
 #define PORT       23
 
-#define LINESIZE   256
+#define DEFAULT_BUFLEN   256
 #define SA struct  sockaddr
 
 #define USERNAME   "root"
@@ -25,7 +25,7 @@
 
 void func(int sockfd)
 {
-    char buff[LINESIZE];
+    char buff[DEFAULT_BUFLEN];
 
     for (;;) {
         bzero(buff, sizeof(buff));
@@ -69,7 +69,7 @@ int kbhit (void)
 
 void sendLine( int sockfd, const char *cmd )
 {
-    char buff[LINESIZE];
+    char buff[DEFAULT_BUFLEN];
 
     snprintf( buff, sizeof(buff), "%s\n", cmd );
     write( sockfd, buff, strlen(buff) );
@@ -99,7 +99,7 @@ bool stripCRLF( char *txt )
 
 int login( int sockfd, const char *username, const char *password )
 {
-    char buff[LINESIZE];
+    char buff[DEFAULT_BUFLEN];
 
     sleep(1);
     readLine( sockfd, buff, sizeof(buff) );
@@ -114,7 +114,7 @@ int login( int sockfd, const char *username, const char *password )
 
 bool logdata( int sockfd, char *buff, int size )
 {
-    char  tmp1[LINESIZE], tmp2[LINESIZE];
+    char  tmp1[DEFAULT_BUFLEN], tmp2[DEFAULT_BUFLEN];
 
     char *timestamp;
     char *chargedata;
@@ -162,7 +162,7 @@ bool logdata( int sockfd, char *buff, int size )
 
 void logger( int sockfd, const char *filename )
 {
-    char buff[LINESIZE];
+    char buff[DEFAULT_BUFLEN];
 
     FILE *logfile = fopen( filename, "a+" );
     if ( !logfile ) exit;
@@ -170,7 +170,7 @@ void logger( int sockfd, const char *filename )
 //  Require ENTER button !!!
     while( !kbhit() )
     {
-        bool boo = logdata( sockfd, buff, LINESIZE );
+        bool boo = logdata( sockfd, buff, DEFAULT_BUFLEN );
 //      if ( boo )
         {
              printf( "%s", buff );
@@ -245,11 +245,12 @@ int lnx_main( int argc, char *argv[] )
 //#pragma comment (lib, "AdvApi32.lib")
 
 
-#define IPADDR          "192.168.1.152"     // argv[1]
+#define DEBUG           0
+#define IPADDR          "192.168.2.1"       // argv[1]
 #define DEFAULT_PORT    "23"
 #define DEFAULT_BUFLEN  512
-#define LINESIZE        DEFAULT_BUFLEN
 #define POLL_PERIOD_s   1                   // [s]
+
 
 int kbhit(void);
 
@@ -297,7 +298,9 @@ int recvBuffer( SOCKET ConnectSocket, char *recvbuf, int recvbuflen )
 
         iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
         if ( iResult > 0 ) {
-//          printf("Bytes received: %d\n%s\n", iResult, recvbuf);
+            #if DEBUG
+            printf("Bytes received: %d\n%s\n", iResult, recvbuf);
+            #endif
         }
         else if ( iResult == 0 )
             printf("Connection closed\n");
@@ -345,18 +348,20 @@ int logdata( SOCKET ConnectSocket, char *buff, int size )
     #define true  1
     #define false 0
 
-    char  tmp1[LINESIZE], tmp2[LINESIZE];
+    char  tmp1[DEFAULT_BUFLEN], tmp2[DEFAULT_BUFLEN];
 
     memset( tmp1, 0, sizeof(tmp1) );
     memset( tmp2, 0, sizeof(tmp2) );
 
-    sendBuffer( ConnectSocket, "date\n" );
+//  sendBuffer( ConnectSocket, "date\n" );
+    sendBuffer( ConnectSocket, "uptime\n" );
     recvBuffer( ConnectSocket, tmp1,  sizeof(tmp1) );
 
     sendBuffer( ConnectSocket, "charge\n" );
     recvBuffer( ConnectSocket, tmp2,  sizeof(tmp2) );
 
-    char *timestamp  = strstr( tmp1, "20" );
+//  char *timestamp  = strstr( tmp1, "20" );
+    char *timestamp  = strstr( tmp1, "Up" ) + 3;
     char *chargedata = strstr( tmp2, "="  );
 
     // NOTE: TCP is stream protocol and do not send allways full text line packets
@@ -391,7 +396,7 @@ int logdata( SOCKET ConnectSocket, char *buff, int size )
 
 void logger( SOCKET ConnectSocket, const char *filename )
 {
-    char buff[LINESIZE];
+    char buff[DEFAULT_BUFLEN];
     int  counter = 0;
 
     FILE *logfile = fopen( filename, "a+" );
@@ -404,7 +409,7 @@ void logger( SOCKET ConnectSocket, const char *filename )
 
         if ( (++counter % POLL_PERIOD_s) == 0 )
         {
-            int  boo = logdata( ConnectSocket, buff, LINESIZE );
+            int  boo = logdata( ConnectSocket, buff, DEFAULT_BUFLEN );
             if ( boo )
             {
                  printf( "%s", buff );
