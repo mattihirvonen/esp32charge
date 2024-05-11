@@ -51,7 +51,7 @@
     //#include "Arduino.h"
     //#include "Wire.h"
     #include "adcmeasure.h"       // Object(s):  ADCPU
-    #include "INA.h"              // Object(s):  INA
+    #include "INA219.h"           // Object(s):  INA
     #include "util.h"             // Object(s):  UTIL
 
     // External object(s)

@@ -41,8 +41,10 @@ Discharged  11.90             1.120
 #include "Arduino.h"
 #include <Wire.h>
 #include <task.h>
-#include "INA.h"
+#include "INA219.h"
 #include "measure.h"
+
+#define  CAPASITY_Ah  90
 
 void dmesg (char *message1);
 
@@ -85,9 +87,11 @@ static volatile int _mA1s;              // average current measurement over 1 se
 static volatile int _efficiency = 80;   // battery charging efficiency [%]
 static volatile int _offset_err = -10;  // input offset error [uV]
 
+static volatile int _capacity_mAs = 1000 * 3600 * CAPASITY_Ah;
+
 #if 1
 // Real boat
-static volatile int _Rshunt = 154;      // micro ohm
+static volatile int _Rshunt = 157;      // micro ohm
 static volatile int _scaleI = 100;      // current scaling normalize to 100%
 static volatile int _compU  = 0;        // bus voltage sense wire loss compensation  [mV/A]
 #else
@@ -149,6 +153,8 @@ void vTaskMeasure( void * pvParameters )
     xLastWakeTime = xTaskGetTickCount ();
     memset( (void*)timingDelay, sizeof(timingDelay), 0 );
 
+    _mAs = _capacity_mAs;
+    
     while ( 1 )
     {
         int sum_uV   = 0;    // Shunt
@@ -217,7 +223,9 @@ void vTaskMeasure( void * pvParameters )
             _uV    = sum_uV   / samples;
             _mV    = sum_mV   / samples;
             _mA1s  = sum_mA1s / samples;
-            _mAs  += sum_mAs  / samples;
+            if( _mAs < _capacity_mAs ) {
+                _mAs += sum_mAs / samples;
+            }
         }
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
         else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)

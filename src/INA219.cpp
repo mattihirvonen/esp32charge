@@ -2,7 +2,7 @@
 #include  "Arduino.h"
 #include  <stdlib.h>    // strtol()
 #include  <Wire.h>
-#include  "INA.h"
+#include  "INA219.h"
 
 #define   RESET_BIT  (1<<15)
 
