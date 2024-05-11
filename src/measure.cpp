@@ -223,8 +223,8 @@ void vTaskMeasure( void * pvParameters )
             _uV    = sum_uV   / samples;
             _mV    = sum_mV   / samples;
             _mA1s  = sum_mA1s / samples;
-            if( _mAs < _capacity_mAs ) {
-                _mAs += sum_mAs / samples;
+            if( (_mAs < _capacity_mAs) || (sum_mAs < 0) ) {
+                 _mAs += sum_mAs / samples;
             }
         }
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
