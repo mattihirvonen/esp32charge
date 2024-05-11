@@ -15,9 +15,10 @@ class UTIL
         explicit UTIL();
         ~UTIL();
 
-        bool         begin();
-        const char  *fwupdate( int args, const char *filename );
-        const char  *charge( int args, const char *arg1 );
+        bool           begin();
+        const char    *fwupdate( int args, const char *filename );
+        const char    *charge( int args, const char *arg1 );
+        String         httpCharge( int args, const char *arg1 );
     
     private:
 

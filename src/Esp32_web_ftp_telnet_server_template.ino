@@ -24,6 +24,13 @@
 // Current measurement task
 #include "measure.h"
 
+// Object(s):  UTIL
+#include "util.h"
+
+// External object(s)
+extern UTIL Utils;
+
+
 // Public object(s)
 MEASURE Measure;
 
@@ -58,7 +65,10 @@ String httpRequestHandlerCallback (char *httpRequest, httpConnection *hcn) {
                     char niceRadio5 [3] = "fm";
 
                     // ----- handle HTTP protocol requests -----
-                        if (httpRequestStartsWith ("GET /example01.html "))       { // used by example 01: Dynamically generated HTML page
+                         if (httpRequestStartsWith ("GET /charge.html "))         { // used by charge status request
+                                                                                      return Utils.httpCharge(0,0);
+                                                                                  }
+                    else if (httpRequestStartsWith ("GET /example01.html "))      { // used by example 01: Dynamically generated HTML page
                                                                                       return "<HTML>Example 01 - dynamic HTML page<br><br><hr />" + String (digitalRead (LED_BUILTIN) ? "Led is on." : "Led is off.") + "<hr /></HTML>";
                                                                                   }
                     else if (httpRequestStartsWith ("GET /example07.html "))      { // used by example 07

@@ -112,6 +112,48 @@ const char * UTIL::charge( int args, const char *arg1 )
     return s;
 }
 
+
+static String string( char *c )
+{
+    return (String)c;
+}
+
+#include <time.h>
+static time_t getUptime( void )
+{
+    uint64_t uptime = esp_timer_get_time();   // [us]
+
+    return (time_t) (uptime / 1000000);
+}
+static String UpTime( void )
+{
+    String  s;
+    char    c[16];
+    time_t  uptime   = getUptime ();
+    int     seconds  = uptime % 60;   uptime /= 60;
+    int     minutes  = uptime % 60;   uptime /= 60;
+    int     hours    = uptime % 24;   uptime /= 24; // uptime now holds days
+    int     days     = uptime;
+
+    if (days) {
+        s += (char *) itoa (days, c, 10) ;
+        s += (char *) " days, ";
+    }
+    sprintf (c, "%02i:%02i:%02i", hours, minutes, seconds);
+    s += string (c);
+
+    return s;
+}
+
+
+String UTIL::httpCharge( int args, const char *arg1 )
+{
+    String  s = (String) UTIL::charge(0,0);
+
+    s += " # Up " + UpTime();;
+    return s;
+}
+
 //==================================================================================
 
 void reset( int softReboot )
