@@ -65,10 +65,10 @@ String httpRequestHandlerCallback (char *httpRequest, httpConnection *hcn) {
                     char niceRadio5 [3] = "fm";
 
                     // ----- handle HTTP protocol requests -----
-                         if (httpRequestStartsWith ("GET /charge.html "))         { // used by charge status request
+                         if (httpRequestStartsWith ("GET /chargeText.html "))     { // used by charge status test, dynamically generated HTML page
                                                                                       return Utils.httpCharge(0,0);
                                                                                   }
-                    else if (httpRequestStartsWith ("GET /values.html "))         { // used by charge status request
+                    else if (httpRequestStartsWith ("GET /chargeValues "))        { // used by charge, REST function for static HTML page
                                                                                       return Utils.httpCharge(1,"values");
                                                                                   }
                     else if (httpRequestStartsWith ("GET /example01.html "))      { // used by example 01: Dynamically generated HTML page

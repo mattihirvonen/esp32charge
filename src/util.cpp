@@ -144,12 +144,21 @@ static String UpTime( void )
 static String jsonValue3( char *id, int value, int decimal )
 {
     char    text[64];
-    char    sign       = (value >= 0) ? '+' : '-';
+    char    sign       =  (value >= 0) ? '+' : '-';
     int     integer    =  abs( value / 1000 );
     int     fractional =  abs( value % 1000 );
 
-    if ( decimal ) {  sprintf( text, ",\"%c%s\":\"%i.%03i\"", id, sign, integer, fractional );  }
-    else           {  sprintf( text, ",\"%c%s\":\"%i\"",      id, sign, value               );  }
+    if ( decimal ) {  sprintf( text, ",\"%s\":\"%c%i.%03i\"", id, sign, integer, fractional );  }
+    else           {  sprintf( text, ",\"%s\":\"%c%i\"",      id, sign, abs(value)          );  }
+    return String (text);
+}
+
+
+static String jsonString( char *id, String str )
+{
+    char    text[64];
+
+    sprintf( text, ",\"%s\":\"%s\"", id, str );
     return String (text);
 }
 
@@ -178,13 +187,12 @@ String UTIL::httpCharge( int args, const char *arg1 )
     {
         s  = "{\"id\":\"" + String (IDSTRING) + "\"";
         //
-/*
-        s += jsonValue3( "uV",    uV,   0 );
-        s += jsonValue3( "mV",    mV,   3 );
-        s += jsonValue3( "mA1s",  mA1s, 3 );
-        s += jsonValue3( "mAs",   mAs,  3 );
-        s += jsonValue3( "mAh",   mAh,  3 );
-*/
+        s += jsonValue3( "uV",     uV,      0 );
+        s += jsonValue3( "mV",     mV,      3 );
+        s += jsonValue3( "mA1s",   mA1s,    3 );
+        s += jsonValue3( "mAs",    mAs,     3 );
+        s += jsonValue3( "mAh",    mAh,     3 );
+        s += jsonString( "uptime", UpTime()   );
         //
         s += "}\r\n";
         return s;
