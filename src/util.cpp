@@ -113,11 +113,6 @@ const char * UTIL::charge( int args, const char *arg1 )
 }
 
 
-static String string( char *c )
-{
-    return (String)c;
-}
-
 #include <time.h>
 static time_t getUptime( void )
 {
@@ -140,18 +135,61 @@ static String UpTime( void )
         s += (char *) " days, ";
     }
     sprintf (c, "%02i:%02i:%02i", hours, minutes, seconds);
-    s += string (c);
+    s += String (c);
 
     return s;
 }
 
 
+static String jsonValue3( char *id, int value, int decimal )
+{
+    char    text[64];
+    char    sign       = (value >= 0) ? '+' : '-';
+    int     integer    =  abs( value / 1000 );
+    int     fractional =  abs( value % 1000 );
+
+    if ( decimal ) {  sprintf( text, ",\"%c%s\":\"%i.%03i\"", id, sign, integer, fractional );  }
+    else           {  sprintf( text, ",\"%c%s\":\"%i\"",      id, sign, value               );  }
+    return String (text);
+}
+
+
 String UTIL::httpCharge( int args, const char *arg1 )
 {
-    String  s = (String) UTIL::charge(0,0);
+    #define HOSTNAME  "ESP32_SRV"
+    #define SERVICE   "charge"
+    #define IDSTRING  HOSTNAME     // HOSTNAME or SERVICE
 
-    s += " # Up " + UpTime();;
-    return s;
+    String  s;
+
+    int  uV    = Measure.uV();     // Shunt
+    int  mV    = Measure.mV();     // Bus
+    int  mA1s  = Measure.mA1s();   // Charging current without efficiency
+    int  mAs   = Measure.mAs();    // Charging sum with efficiency
+    int  mAh   = mAs / 3600;
+
+    if ( args == 0 )
+    {
+        s = String ( UTIL::charge(0,0) );
+        s += " # Up " + UpTime();
+        return s;
+    }
+    if ( (args == 1) && strstr(arg1,"values") )
+    {
+        s  = "{\"id\":\"" + String (IDSTRING) + "\"";
+        //
+/*
+        s += jsonValue3( "uV",    uV,   0 );
+        s += jsonValue3( "mV",    mV,   3 );
+        s += jsonValue3( "mA1s",  mA1s, 3 );
+        s += jsonValue3( "mAs",   mAs,  3 );
+        s += jsonValue3( "mAh",   mAh,  3 );
+*/
+        //
+        s += "}\r\n";
+        return s;
+    }
+    return  "404 Page not Found";
 }
 
 //==================================================================================
