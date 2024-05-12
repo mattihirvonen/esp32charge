@@ -185,11 +185,14 @@ String UTIL::httpCharge( int args, const char *arg1 )
 
     String  s;
 
-    int  uV    = Measure.uV();     // Shunt
-    int  mV    = Measure.mV();     // Bus
-    int  mA1s  = Measure.mA1s();   // Charging current without efficiency
-    int  mAs   = Measure.mAs();    // Charging sum with efficiency
-    int  mAh   = mAs / 3600;
+    int  uV         = Measure.uV();     // Shunt
+    int  mV         = Measure.mV();     // Bus
+    int  mA1s       = Measure.mA1s();   // Charging current without efficiency
+    int  mAs        = Measure.mAs();    // Charging sum with efficiency
+    int  mAh        = mAs / 3600;
+    int  Rshunt     = Measure.Rshunt();
+    int  offset     = Measure.offset();
+    int  efficiency = 80;
 
     if ( args == 0 )
     {
@@ -199,13 +202,16 @@ String UTIL::httpCharge( int args, const char *arg1 )
     }
     if ( (args == 1) && strstr(arg1,"data") )
     {
-        s  = jsonBeginS( "id",     IDSTRING   );
-        s += jsonValue3( "uV",     uV,      0 );
-        s += jsonValue3( "mV",     mV,      3 );
-        s += jsonValue3( "mA1s",   mA1s,    3 );
-        s += jsonValue3( "mAs",    mAs,     3 );
-        s += jsonValue3( "mAh",    mAh,     3 );
-        s += jsonString( "uptime", UpTime()   );
+        s  = jsonBeginS( "id",         IDSTRING       );
+        s += jsonValue3( "uV",         uV,          0 );
+        s += jsonValue3( "mV",         mV,          3 );
+        s += jsonValue3( "mA1s",       mA1s,        3 );
+        s += jsonValue3( "mAs",        mAs,         3 );
+        s += jsonValue3( "mAh",        mAh,         3 );
+        s += jsonValue3( "Rshunt",     Rshunt,      0 );
+        s += jsonValue3( "offset",     offset,      0 );
+        s += jsonValue3( "efficiency", efficiency,  0 );
+        s += jsonString( "uptime",     UpTime()       );
         s += jsonEnd();
         return s;
     }

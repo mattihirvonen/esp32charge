@@ -28,6 +28,12 @@
 		Charge state		<span id='mAs'>...</span> As <br />
 		Shunt voltage 		<span id='uV'>...</span> uV <br />
 		Bus voltage			<span id='mV'>...</span> V <br />
+		Rshunt              <span id='Rshunt'>...</span> uOhm <br />
+		offset              <span id='offset'>...</span> uV <br />
+		efficiency          <span id='efficiency'>...</span> % <br />
+		<br />
+		scaleI              <span id='scaleI'>...</span> % <br />
+		compU               <span id='compU'>...</span> mV/A <br />
 		<hr />
 
 		<!-- error message -->
@@ -73,12 +79,17 @@
 		var client = new httpClient ();
 		client.request ('/charge/data', 'GET', function (json) {
 			// json reply will be in a form: {"id":"ESP32_SRV","builtInLed":"on"}
-			document.getElementById('mAh').innerText    = (JSON.parse (json).mAh);
-			document.getElementById('mAs').innerText    = (JSON.parse (json).mAs);
-			document.getElementById('mA1s').innerText   = (JSON.parse (json).mA1s);
-			document.getElementById('uV').innerText     = (JSON.parse (json).uV);
-			document.getElementById('mV').innerText     = (JSON.parse (json).mV);
-			document.getElementById('uptime').innerText = (JSON.parse (json).uptime);
+			document.getElementById('mAh').innerText        = (JSON.parse (json).mAh);
+			document.getElementById('mAs').innerText        = (JSON.parse (json).mAs);
+			document.getElementById('mA1s').innerText       = (JSON.parse (json).mA1s);
+			document.getElementById('uV').innerText         = (JSON.parse (json).uV);
+			document.getElementById('mV').innerText         = (JSON.parse (json).mV);
+			document.getElementById('uptime').innerText     = (JSON.parse (json).uptime);
+			document.getElementById('Rshunt').innerText     = (JSON.parse (json).Rshunt);
+			document.getElementById('offset').innerText     = (JSON.parse (json).offset);
+			document.getElementById('efficiency').innerText = (JSON.parse (json).efficiency);
+			document.getElementById('scaleI').innerText     = "100";  // <!-- (JSON.parse (json).scaleI); -->
+			document.getElementById('compU').innerText      = "0";    // <!-- (JSON.parse (json).compU);  -->
 		});
 
 		// error message

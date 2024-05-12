@@ -85,7 +85,7 @@ static volatile int _mA;                // "raw" bus   current measurement resul
 static volatile int _mAs = 0;           // cumulative charge in milli ampere seconds
 static volatile int _mA1s;              // average current measurement over 1 second period
 static volatile int _efficiency = 80;   // battery charging efficiency [%]
-static volatile int _offset_err = -10;  // input offset error [uV]
+static volatile int _offset     = -10;  // input offset error [uV]
 
 static volatile int _capacity_mAs = 1000 * 3600 * CAPASITY_Ah;
 
@@ -194,7 +194,7 @@ void vTaskMeasure( void * pvParameters )
             // - neg.input: battery terminal (bus voltage to ground measurement terminal)
             // - pos.input: load    terminal
 
-            int uV =  INA.shunt_uV() - _offset_err;
+            int uV =  INA.shunt_uV() - _offset;
             int mV = (INA.bus_mV() * 14150) / 14220;
 
             int mA = (1000 * uV) / _Rshunt;
@@ -302,10 +302,40 @@ int MEASURE::mA1s( void )
 {   return _mA1s;  }
 
 
+// Get R shunt resistence[ u ohm]
+int MEASURE::Rshunt( void )
+{
+    return _Rshunt;
+}
+
+
+// Get differential amplifier offset error [uV]
+int MEASURE::offset( void )
+{
+    return _offset;
+}
+
+
+// Get charging operating efficiency [%]
+int MEASURE::efficiency( void )
+{
+    return _efficiency;
+}
+
+
+// Get R shunt resistence[ u ohm]
 int MEASURE::setRshunt( int micro_ohm )
 {
     _Rshunt = micro_ohm;
     return _Rshunt;
+}
+
+
+// Set diff apmlifier offset error [uV]
+int MEASURE::setOffset( int uV )
+{
+    _offset = uV;
+    return _offset;
 }
 
 
@@ -335,13 +365,6 @@ int MEASURE::setAh( int Ah )
 int MEASURE::setEfficiency( int percent )
 {
     _efficiency = percent;
-    return _efficiency;
-}
-
-
-// Get charging operating efficiency [%]
-int MEASURE::getEfficiency( void )
-{
     return _efficiency;
 }
 
