@@ -71,7 +71,7 @@
 
 		// make a REST call and initialize/populate this page
 		var client = new httpClient ();
-		client.request ('/chargeValues', 'GET', function (json) {
+		client.request ('/charge/data', 'GET', function (json) {
 			// json reply will be in a form: {"id":"ESP32_SRV","builtInLed":"on"}
 			document.getElementById('mAh').innerText    = (JSON.parse (json).mAh);
 			document.getElementById('mAs').innerText    = (JSON.parse (json).mAs);

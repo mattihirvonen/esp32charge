@@ -197,7 +197,7 @@ String UTIL::httpCharge( int args, const char *arg1 )
         s += " # Up " + UpTime();
         return s;
     }
-    if ( (args == 1) && strstr(arg1,"values") )
+    if ( (args == 1) && strstr(arg1,"data") )
     {
         s  = jsonBeginS( "id",     IDSTRING   );
         s += jsonValue3( "uV",     uV,      0 );
@@ -208,6 +208,11 @@ String UTIL::httpCharge( int args, const char *arg1 )
         s += jsonString( "uptime", UpTime()   );
         s += jsonEnd();
         return s;
+    }
+    if ( (args == 1) && strstr(arg1,"full") )
+    {
+        Measure.setAh( 90 );   // Battery nominal capacity 90 Ah
+        return "90.000 Ah";
     }
     return  "404 Page not Found";
 }
