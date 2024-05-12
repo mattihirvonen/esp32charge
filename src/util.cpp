@@ -142,14 +142,14 @@ static String UpTime( void )
 
 
 
-static String jsonBeginS( char *name, String value )
+static String jsonBeginS( String name, String value )
 {
     String s = "{\" + name + \":\"" + value + "\"";
     return s;
 }
 
 
-static String jsonString( char *name, String value )
+static String jsonString( String name, String value )
 {
     char    text[64];
 
@@ -158,7 +158,7 @@ static String jsonString( char *name, String value )
 }
 
 
-static String jsonValue3( char *name, int value, int decimal )
+static String jsonValue3( String name, int value, int decimal )
 {
     char    text[64];
     char    sign       =  (value >= 0) ? '+' : '-';
