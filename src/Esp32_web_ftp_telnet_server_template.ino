@@ -66,13 +66,13 @@ String httpRequestHandlerCallback (char *httpRequest, httpConnection *hcn) {
 
                     // ----- handle HTTP protocol requests -----
                          if (httpRequestStartsWith ("GET /chargeText.html "))     { // used by charge status test, dynamically generated HTML page
-                                                                                      return Utils.httpCharge(0,0);
+                                                                                      return Utils.httpCharge(0,0,0);
                                                                                   }
                     else if (httpRequestStartsWith ("GET /charge/data "))         { // used by charge, REST function for static HTML page
-                                                                                      return Utils.httpCharge(1,"data");
+                                                                                      return Utils.httpCharge(1,"data",0);
                                                                                   }
-                    else if (httpRequestStartsWith ("PUT /charge/full "))         { // used by charge, REST function for static HTML page
-                                                                                      return Utils.httpCharge(1,"full");
+                    else if (httpRequestStartsWith ("PUT /charge/setAh "))        { // used by charge, REST function for static HTML page
+                                                                                      return Utils.httpCharge(1,"setAh",90);
                                                                                   }
                     else if (httpRequestStartsWith ("GET /example01.html "))      { // used by example 01: Dynamically generated HTML page
                                                                                       return "<HTML>Example 01 - dynamic HTML page<br><br><hr />" + String (digitalRead (LED_BUILTIN) ? "Led is on." : "Led is off.") + "<hr /></HTML>";

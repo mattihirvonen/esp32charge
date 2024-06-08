@@ -177,7 +177,7 @@ static String jsonEnd( void )
 }
 
 
-String UTIL::httpCharge( int args, const char *arg1 )
+String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
 {
     #define HOSTNAME  "ESP32_SRV"
     #define SERVICE   "charge"
@@ -215,10 +215,10 @@ String UTIL::httpCharge( int args, const char *arg1 )
         s += jsonEnd();
         return s;
     }
-    if ( (args == 1) && strstr(arg1,"full") )
+    if ( (args == 1) && strstr(arg1,"setAh") )
     {
-        Measure.setAh( 90 );   // Battery nominal capacity 90 Ah
-        return "90.000 Ah";
+        Measure.setAh( arg2 );   // Battery nominal capacity 90 Ah
+        return "OK";
     }
     return  "404 Page not Found";
 }
