@@ -2,30 +2,28 @@
 #include  "Arduino.h"
 #include  <stdlib.h>    // strtol()
 #include  <Wire.h>
-#include  "INA219.h"
+#include  "INA226.h"
 
-#define   RESET_BIT  (1<<15)
+#define   RESET_BIT            0x8000
+#define   CONFIG_AVG1          0x0     // Average of 1  samples
+#define   CONFIG_AVG4          0x1     // Average of 4  samples
+#define   CONFIG_AVG16         0x2     // Average of 16 samples
+#define   CONFIG_VBUSCT        0x4     // Conversion time 1.1 ms
+#define   CONFIG_VSHCT         0x4     // Conversion time 1.1 ms
+#define   CONFIG_MODE          0x7     // Shunt and bus, continuous conversiion
 
-#define   CONFIG_BRNG          0x1   // 32V
-#define   CONFIG_PG_GAIN       0x0   // 40  mV - gain /1
-//#define CONFIG_PG_GAIN       0x1   // 80  mV - gain /2
-//#define CONFIG_PG_GAIN       0x2   // 160 mV - gain /4
-//#define CONFIG_PG_GAIN       0x3   // 320 mV - gain /8
-#define   CONFIG_ADC_SAMPLES   0xc   // 16 samples 8.51 ms
-#define   CONFIG_MODE          0x7   // Shunt and bus, continunuous
-
-// Reset default value is 0x399f
-#define  CONFIG_VALUE  ((CONFIG_BRNG<<13) | (CONFIG_PG_GAIN<<11) | (CONFIG_ADC_SAMPLES<<7) | (CONFIG_ADC_SAMPLES<<3) | CONFIG_MODE)
+// Default value is 0x4123
+#define  CONFIG_VALUE  ((1 << 14) | (CONFIG_AVG4 << 9) | (CONFIG_VBUSCT << 6) | (CONFIG_VSHCT << 3) | CONFIG_MODE)
 
 ////////////////////////////////////////////////////////
 //
 //  Constructor
 //
 /*!
- *  @brief  Instantiates a new INA219 class
+ *  @brief  Instantiates a new INA226 class
  *  @param addr the I2C address the device can be found on. Default is 0x40
  */
-INA219::INA219(const uint8_t address, TwoWire *wire)
+INA226::INA226(const uint8_t address, TwoWire *wire)
 {
   _address     = address;
   _wire        = wire;
@@ -33,29 +31,29 @@ INA219::INA219(const uint8_t address, TwoWire *wire)
 
 
 /*!
- *  @brief INA219 class destructor
+ *  @brief INA226 class destructor
  */
-INA219::~INA219()
+INA226::~INA226()
 {
 //delete i2c_dev;
 }
 
 
-bool INA219::begin()
+bool INA226::begin()
 {
   if (! isConnected()) return false;
   return true;
 }
 
 
-bool INA219::isConnected()
+bool INA226::isConnected()
 {
   _wire->beginTransmission(_address);
   return ( _wire->endTransmission() == 0);
 }
 
 
-uint8_t INA219::getAddress()
+uint8_t INA226::getAddress()
 {
   return _address;
 }
@@ -64,7 +62,7 @@ uint8_t INA219::getAddress()
 //
 //  Core functions
 //
-int16_t INA219::reg( int arg, uint8_t reg, uint16_t value )
+int16_t INA226::reg( int arg, uint8_t reg, uint16_t value )
 {
     if ( arg == 0 ) {
         reset();
@@ -80,26 +78,26 @@ int16_t INA219::reg( int arg, uint8_t reg, uint16_t value )
 }
 
 
-int INA219::shunt_uV( void )
+int INA226::shunt_uV( void )
 {
-    // 10 uV/bit
+    // 2.5 uV/bit
     int value = (int16_t) readRegister( 1 );
-    return 10 * value;
+    return (5 * value) / 2;
 }
 
 
-int INA219::bus_mV( void )
+int INA226::bus_mV( void )
 {
-    // 4 mV/bit
-    int value = readRegister( 2 ) >> 3;
-    return  4 * value;
+    // 1.25 mV/bit
+    int value = readRegister( 2 );
+    return  (5 * value) / 4;
 }
 
 ////////////////////////////////////////////////////////
 //
 //  Configuration
 //
-bool INA219::reset()
+bool INA226::reset()
 {
     writeRegister( 0, (RESET_BIT | CONFIG_VALUE)  );
     delay( 10 );
@@ -111,7 +109,7 @@ bool INA219::reset()
 //
 //  PRIVATE
 //
-uint16_t INA219::readRegister(uint8_t reg)
+uint16_t INA226::readRegister(uint8_t reg)
 {
     _wire->beginTransmission(_address);
     _wire->write(reg);
@@ -125,7 +123,7 @@ uint16_t INA219::readRegister(uint8_t reg)
 }
 
 
-uint16_t INA219::writeRegister(uint8_t reg, uint16_t value)
+uint16_t INA226::writeRegister(uint8_t reg, uint16_t value)
 {
     _wire->beginTransmission(_address);
     _wire->write(reg);
