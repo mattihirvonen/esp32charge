@@ -17,6 +17,9 @@
 
 */
 
+// PSRAM: https://thingpulse.com/esp32-how-to-use-psram/
+// #include <Arduino.h>
+
 #include <WiFi.h>
 // --- PLEASE MODIFY THIS FILE FIRST! --- This is where you can configure your network credentials, which servers will be included, etc ...
 #include "Esp32_servers_config.h"
@@ -345,10 +348,24 @@ void cronHandlerCallback (char *cronCommand) {
 }
 
 
+void logMemory( int memsize ) {
+    byte*  psdRamBuffer = (byte*)ps_malloc(memsize);
+
+    log_d("Total heap:  %d", ESP.getHeapSize());
+    log_d("Free  heap:  %d", ESP.getFreeHeap());
+    log_d("Total PSRAM: %d", ESP.getPsramSize());
+    log_d("Free  PSRAM: %d", ESP.getFreePsram());
+    log_d("Used  PSRAM: %d", ESP.getPsramSize() - ESP.getFreePsram());
+    free(psdRamBuffer);
+}
+
+
 void setup () {
 	delay (3000);  // Give VScode+PlatformIO time to open monitor terminal window's COM port
     Serial.begin (115200);
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
+
+    logMemory( 50000 );
 
     // Start measurement task
     #if 0
