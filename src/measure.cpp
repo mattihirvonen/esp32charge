@@ -35,6 +35,24 @@ of Charge   Battery           Gravity
    5        11.92             1.127
 Discharged  11.90             1.120
 
+INA219 :
+* Resolution 10 uV / bit (full scale range +-40 mV)
+* Full scale ranges 40 mV ... 320 mV (depend on gain setting)
+* +-4000 (+-12 bits)
+
+INA226:
+* Resolution 2.5 uV / bit
+* Full scale range 80 mV
+* +-32000 (+-15 bits)
+
+Rmeasure external shunt:
+* 75mV / 100A (750 uOhm)
+* INA219 fs  53.3 A (40 mV range) -> 13.0 mA/bit
+* INA226 fs 106.7 A (80 mV range) ->  3.3 mA/bit
+
+Rmeasure INA module:
+* 0.1 ohm (100000 uOhm)
+
 #endif //=======================================================================
 
 #include <stdint.h>
@@ -91,7 +109,7 @@ static volatile int _capacity_mAs = 1000 * 3600 * CAPASITY_Ah;
 
 #if 1
 // Real boat
-static volatile int _Rshunt = 157;      // micro ohm
+static volatile int _Rshunt = 750;      // micro ohm - 75 mV / 100 A
 static volatile int _scaleI = 100;      // current scaling normalize to 100%
 static volatile int _compU  = 0;        // bus voltage sense wire loss compensation  [mV/A]
 #else
