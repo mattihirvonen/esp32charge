@@ -162,11 +162,27 @@ static String jsonValue3( String name, int value, int decimal )
 {
     char    text[64];
     char    sign       =  (value >= 0) ? '+' : '-';
-    int     integer    =  abs( value / 1000 );
-    int     fractional =  abs( value % 1000 );
+    int     integer;
+    int     fractional;
 
-    if ( decimal ) {  sprintf( text, ",\"%s\":\"%c%i.%03i\"", name, sign, integer, fractional );  }
-    else           {  sprintf( text, ",\"%s\":\"%c%i\"",      name, sign, abs(value)          );  }
+    if ( decimal == 1 ) {
+        integer    =  abs( value / 10 );
+        fractional =  abs( value % 10 );
+        sprintf( text, ",\"%s\":\"%c%i.%01i\"", name, sign, integer, fractional );
+    }
+    else if ( decimal == 2 ) {
+        integer    =  abs( value / 100 );
+        fractional =  abs( value % 100 );
+        sprintf( text, ",\"%s\":\"%c%i.%02i\"", name, sign, integer, fractional );
+    }
+    else if ( decimal == 3 ) {
+        integer    =  abs( value / 1000 );
+        fractional =  abs( value % 1000 );
+        sprintf( text, ",\"%s\":\"%c%i.%03i\"", name, sign, integer, fractional );
+    }
+    else {
+        sprintf( text, ",\"%s\":\"%c%i\"",      name, sign, abs(value)          );
+    }
     return String (text);
 }
 
@@ -215,7 +231,7 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
         s += jsonValue3( "offset",     offset,      0 );
         s += jsonValue3( "efficiency", efficiency,  0 );
         s += jsonValue3( "scaleI",     scaleI,      0 );
-        s += jsonValue3( "scaleU",     scaleU,      0 );
+        s += jsonValue3( "scaleU",     scaleU,      1 );
         s += jsonValue3( "compU",      compU,       0 );
         s += jsonString( "uptime",     UpTime()       );
         s += jsonEnd();
