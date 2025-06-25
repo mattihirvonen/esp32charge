@@ -214,12 +214,13 @@ void vTaskMeasure( void * pvParameters )
             // - pos.input: load    terminal
 
             int uV =  INA.shunt_uV() - _offset;
-            int mV = (INA.bus_mV()   * _scaleU) / 1000;
+            int mV =  INA.bus_mV();
 
             int mA = (1000 * uV) / _Rshunt;
             int mA_charge;
  
             mA  = (mA * _scaleI ) / 100;
+            mV  = (mV * _scaleU ) / 1000;
             mV -= (mA * _compU  ) / 1000;
 
             if ( mA >=0 ) {  mA_charge = ( mA * _efficiency ) / 100;  }    // Charging
