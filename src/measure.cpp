@@ -110,8 +110,8 @@ static volatile int _capacity_mAs = 1000 * 3600 * CAPASITY_Ah;
 #if 1
 // Real boat
 static volatile int _Rshunt = 750;      // micro ohm - 75 mV / 100 A
-static volatile int _scaleI = 100;      // current scaling normalize to 100%
-static volatile int _scaleU = 100;      // voltage scaling normalize to 100%
+static volatile int _scaleI = 100;      // current scaling normalize to 100 %
+static volatile int _scaleU = 1000;     // voltage scaling normalize to 100.0 %
 static volatile int _compU  = 0;        // bus voltage sense wire loss compensation  [mV/A]
 #else
 // Home test
@@ -214,7 +214,7 @@ void vTaskMeasure( void * pvParameters )
             // - pos.input: load    terminal
 
             int uV =  INA.shunt_uV() - _offset;
-            int mV = (INA.bus_mV()   * _scaleU) / 100;
+            int mV = (INA.bus_mV()   * _scaleU) / 1000;
 
             int mA = (1000 * uV) / _Rshunt;
             int mA_charge;
