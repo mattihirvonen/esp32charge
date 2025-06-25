@@ -371,7 +371,7 @@ void setup () {
     #if 0
     Measure.begin( 612 );   // external 0.1 ohm with wires
     #else
-    Measure.begin( 100 );   // internal 0.1 ohm with wires
+    Measure.begin( 0 );     // no current measurement calibration (use default value)
     #endif
 
     #ifdef FILE_SYSTEM

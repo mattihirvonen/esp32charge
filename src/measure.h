@@ -20,12 +20,16 @@ class MEASURE
         int   mA1s();
         int   Rshunt();
         int   offset();
-        int   efficiency( void );
+        int   efficiency();
+        int   scaleI();
+        int   scaleU();
+        int   compU();
 
         int   setUcomp(  int mVA );
         int   setRshunt( int micro_ohm );
         int   setOffset( int uV );
         int   setIscale( int scale_100 );
+        int   setUscale( int scale_100 );
         int   setAh( int Ah );
         int   setEfficiency( int percent );
 

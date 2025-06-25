@@ -102,7 +102,7 @@ static volatile int _mV;                // "raw" bus   voltage measurement resul
 static volatile int _mA;                // "raw" bus   current measurement result in milli amperes
 static volatile int _mAs = 0;           // cumulative charge in milli ampere seconds
 static volatile int _mA1s;              // average current measurement over 1 second period
-static volatile int _efficiency = 80;   // battery charging efficiency [%]
+static volatile int _efficiency = 75;   // battery charging efficiency [%]
 static volatile int _offset     = -10;  // input offset error [uV]
 
 static volatile int _capacity_mAs = 1000 * 3600 * CAPASITY_Ah;
@@ -111,6 +111,7 @@ static volatile int _capacity_mAs = 1000 * 3600 * CAPASITY_Ah;
 // Real boat
 static volatile int _Rshunt = 750;      // micro ohm - 75 mV / 100 A
 static volatile int _scaleI = 100;      // current scaling normalize to 100%
+static volatile int _scaleU = 100;      // voltage scaling normalize to 100%
 static volatile int _compU  = 0;        // bus voltage sense wire loss compensation  [mV/A]
 #else
 // Home test
@@ -213,7 +214,7 @@ void vTaskMeasure( void * pvParameters )
             // - pos.input: load    terminal
 
             int uV =  INA.shunt_uV() - _offset;
-            int mV = (INA.bus_mV() * 14150) / 14220;
+            int mV = (INA.bus_mV()   * _scaleU) / 100;
 
             int mA = (1000 * uV) / _Rshunt;
             int mA_charge;
@@ -274,7 +275,9 @@ MEASURE::~MEASURE()
 // Arduino style module initialization
 void MEASURE::begin( int scale_100 )
 {
-    _scaleI = scale_100;
+    if (scale_100 ) {
+        _scaleI = scale_100;
+    }
 
     if ( started ) {    // Run only one measurement task 
          return;
@@ -341,7 +344,28 @@ int MEASURE::efficiency( void )
 }
 
 
-// Get R shunt resistence[ u ohm]
+// Get current measurement calibration scale [%]
+int MEASURE::scaleI( void )
+{
+    return _scaleI;
+}
+
+
+// Get bus voltage measurement calibration scale [%]
+int MEASURE::scaleU( void )
+{
+    return _scaleU;
+}
+
+
+// Get bus voltage measurement correction [mV/A]
+int MEASURE::compU( void )
+{
+    return _compU;
+}
+
+
+// Set R shunt resistence[ u ohm]
 int MEASURE::setRshunt( int micro_ohm )
 {
     _Rshunt = micro_ohm;
@@ -361,6 +385,13 @@ int MEASURE::setIscale( int scale_100 )
 {
     _scaleI = scale_100;
     return _scaleI;
+}
+
+
+int MEASURE::setUscale( int scale_100 )
+{
+    _scaleU = scale_100;
+    return _scaleU;
 }
 
 

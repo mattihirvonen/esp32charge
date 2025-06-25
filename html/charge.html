@@ -3,7 +3,7 @@
 
 		dialog[open] {
 			font-family: verdana; 
-			font-size: 42px; 
+			font-size: 142px; 
 			color: white;
 			background-color:rgb(200 0 0 / 0.90);
 			border: solid rgb(200 0 0 / 0.90) 0px;
@@ -20,20 +20,24 @@
 
 	<body>
 		
-		Charge - static HTML page calling REST functions<br><br>
+		Charge state <br />
+		- static HTML page calling <br />
+		- REST functions to get values <br /><br />
 		<hr />
-		UpTime				<span id='uptime'>...</span> <br />
-		Charge current		<span id='mA1s'>...</span> A <br />
-		Charge state		<span id='mAh'>...</span> Ah <br />
-		Charge state		<span id='mAs'>...</span> As <br />
-		Shunt voltage 		<span id='uV'>...</span> uV <br />
-		Bus voltage			<span id='mV'>...</span> V <br />
-		Rshunt              <span id='Rshunt'>...</span> uOhm <br />
-		offset              <span id='offset'>...</span> uV <br />
-		efficiency          <span id='efficiency'>...</span> % <br />
+		UpTime           <span id='uptime'>...</span> <br />
+		Bus voltage      <span id='mV'>...</span> V <br />
+		Charge state     <span id='mAh'>...</span> Ah <br />
+		Charge current   <span id='mA1s'>...</span> A <br />
 		<br />
-		scaleI              <span id='scaleI'>...</span> % <br />
-		compU               <span id='compU'>...</span> mV/A <br />
+		Charge state     <span id='mAs'>...</span> As <br />
+		Shunt voltage    <span id='uV'>...</span> uV <br />
+		Rshunt           <span id='Rshunt'>...</span> uOhm <br />
+		offset           <span id='offset'>...</span> uV <br />
+		efficiency       <span id='efficiency'>...</span> % <br />
+		<br />
+		scaleI           <span id='scaleI'>...</span> % <br />
+		scaleU           <span id='scaleU'>...</span> % <br />
+		compU            <span id='compU'>...</span> mV/A <br />
 		<hr />
 
 		<!-- error message -->
@@ -88,8 +92,9 @@
 			document.getElementById('Rshunt').innerText     = (JSON.parse (json).Rshunt);
 			document.getElementById('offset').innerText     = (JSON.parse (json).offset);
 			document.getElementById('efficiency').innerText = (JSON.parse (json).efficiency);
-			document.getElementById('scaleI').innerText     = "100";  // <!-- (JSON.parse (json).scaleI); -->
-			document.getElementById('compU').innerText      = "0";    // <!-- (JSON.parse (json).compU);  -->
+			document.getElementById('scaleI').innerText     = (JSON.parse (json).scaleI);
+			document.getElementById('scaleU').innerText     = (JSON.parse (json).scaleU);
+			document.getElementById('compU').innerText      = (JSON.parse (json).compU);
 		});
 
 		// error message

@@ -192,7 +192,10 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
     int  mAh        = mAs / 3600;
     int  Rshunt     = Measure.Rshunt();
     int  offset     = Measure.offset();
-    int  efficiency = 80;
+    int  scaleI     = Measure.scaleI();
+    int  scaleU     = Measure.scaleU();
+    int  efficiency = Measure.efficiency();
+    int  compU      = Measure.compU();
 
     if ( args == 0 )
     {
@@ -211,6 +214,9 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
         s += jsonValue3( "Rshunt",     Rshunt,      0 );
         s += jsonValue3( "offset",     offset,      0 );
         s += jsonValue3( "efficiency", efficiency,  0 );
+        s += jsonValue3( "scaleI",     scaleI,      0 );
+        s += jsonValue3( "scaleU",     scaleU,      0 );
+        s += jsonValue3( "compU",      compU,       0 );
         s += jsonString( "uptime",     UpTime()       );
         s += jsonEnd();
         return s;
