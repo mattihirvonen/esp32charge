@@ -77,10 +77,10 @@ void dmesg (char *message1);
 //   samples which takes 8.5 ms time
 
 #if       CONFIG_IDF_TARGET_ESP32S3
-#define   TASK_MEASURE_CORE   1       // loop() run on core 1, other task's default is 0
+#define   TASK_MEASURE_CORE    1        // loop() run on core 1, other task's default core is 0
 #endif
-#define   tskNORMAL_PRIORITY  2       // Task's and loop() default priority is 1
-#define   MEASURE_STACK_SIZE  2048    // Bytes not words!  configMINIMAL_STACK_SIZE is 828
+#define   tskMEASURE_PRIORITY  2        // Normal priority for task's and loop() is 1
+#define   MEASURE_STACK_SIZE   2048     // Bytes not words!  configMINIMAL_STACK_SIZE is 828
 
 // Public object(s)
 INA219  INA( INA219_ADDRESS );
@@ -110,7 +110,7 @@ static volatile int _capacity_mAs = 1000 * 3600 * CAPASITY_Ah;
 #if 1
 // Real boat
 static volatile int _Rshunt = 750;      // micro ohm - 75 mV / 100 A
-static volatile int _scaleI = 100;      // current scaling normalize to 100 %
+static volatile int _scaleI = 138;      // current scaling normalize to 100 %
 static volatile int _scaleU = 1000;     // voltage scaling normalize to 100.0 %
 static volatile int _compU  = 0;        // bus voltage sense wire loss compensation  [mV/A]
 #else
@@ -119,6 +119,9 @@ static volatile int _Rshunt = 100000;   // micro ohm
 static volatile int _scaleI = 612;      // current scaling normalize to 100%
 static volatile int _compU  = 50;       // bus voltage sense wire loss compensation  [mV/A]
 #endif
+
+void collect_task_schedule_delay_statistics( int msDelay );
+
 
 // Trick: Set "scale" multiplier to 612 (== 6.12x)
 // Notify wiring resistances in my measurement test circuit
@@ -138,7 +141,7 @@ void vTaskMeasure( void * pvParameters )
     static char s[64];  // Do not use stack space
 
     // Note: Select SAMPLES_PER_SECOND between range 10 ... 100
-    // ( 10, 20, 40, 50, 100 )
+    // ( 10, 20, 25, 40, 50, 100 )
 
     #define SAMPLES_PER_SECOND   20
     #define SAMPLE_PERIOD       (1000 / SAMPLES_PER_SECOND)    // [ms]
@@ -172,7 +175,7 @@ void vTaskMeasure( void * pvParameters )
     xLastWakeTime = xTaskGetTickCount ();
     memset( (void*)timingDelay, sizeof(timingDelay), 0 );
 
-    _mAs = _capacity_mAs;
+    _mAs = 0;  //  _capacity_mAs;
     
     while ( 1 )
     {
@@ -181,6 +184,9 @@ void vTaskMeasure( void * pvParameters )
         int sum_mA1s = 0;
         int sum_mAs  = 0;
         int samples  = 0;
+        int mA_charge;
+
+        // For loop takes one second:  SAMPLES_PER_SECOND * xFrequency
 
         for ( int i = 0; i < SAMPLES_PER_SECOND; i++ )
         {
@@ -192,20 +198,7 @@ void vTaskMeasure( void * pvParameters )
 
             int msDelay = xTaskGetTickCount() - scheduleTime;
 
-            if ( msDelay < 0 ) {
-                timingDelay[ 21 ] += 1;
-//              continue;
-            }
-            if ( msDelay >= 100 ) {
-                timingDelay[ 20 ] += 1;
-            }
-            else if ( msDelay >= 10 ) {
-                timingDelay[ 10 + (msDelay / 10) ] += 1;
-            }
-            else {
-                timingDelay[ msDelay ] += 1;
-                timingDelay[ 10   ]    += 1;
-            }
+            collect_task_schedule_delay_statistics( msDelay );
 
             // Perform action here. xWasDelayed value can be used to determine
             // whether a deadline was missed if the code here took too long.
@@ -215,9 +208,7 @@ void vTaskMeasure( void * pvParameters )
 
             int uV =  INA.shunt_uV() - _offset;
             int mV =  INA.bus_mV();
-
             int mA = (1000 * uV) / _Rshunt;
-            int mA_charge;
  
             mA  = (mA * _scaleI ) / 100;
             mV  = (mV * _scaleU ) / 1000;
@@ -229,8 +220,8 @@ void vTaskMeasure( void * pvParameters )
             if ( msDelay >= 0 )          // Some cases at start msDelay might be negative ?!!
             {
                 samples  += 1;
-                sum_uV   += uV;
-                sum_mV   += mV;
+                sum_uV   += uV;          // I sense voltage
+                sum_mV   += mV;          // Bus voltage
                 sum_mA1s += mA;          // Raw charging current (measure with slow DMM)
                 sum_mAs  += mA_charge;   // Charging with efficiency                
                 _mA       = mA;          // Update "raw" current  measuremeunt result
@@ -240,17 +231,44 @@ void vTaskMeasure( void * pvParameters )
         // Update one time per second
         if ( samples )
         {
-            _uV    = sum_uV   / samples;
-            _mV    = sum_mV   / samples;
-            _mA1s  = sum_mA1s / samples;
-            if( (_mAs < _capacity_mAs) || (sum_mAs < 0) ) {
-                 _mAs += sum_mAs / samples;
+            _uV       = sum_uV   / samples;
+            _mV       = sum_mV   / samples;
+            _mA1s     = sum_mA1s / samples;
+            mA_charge = sum_mAs  / samples;  // Efective charge/discharge current
+
+            if( (_mAs <  _capacity_mAs) || (sum_mAs < 0) ) {
+                 _mAs += mA_charge;
             }
         }
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
         else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)
     }
 }
+
+
+void collect_task_schedule_delay_statistics( int msDelay )
+{
+    // Collect "histogram" how task delayed from shedule time
+    // - indexes  0..9  contain count of delays 0 to 9  ms
+    // - indexes 10..19 contain count of delays 0 to 99 ms (10 ms steps)
+    // - index   20     contain count of delays more than 99ms
+    // - index   21     contain count of too early shedule
+    if ( msDelay < 0 ) {
+        timingDelay[ 21 ] += 1;
+//              continue;
+    }
+    if ( msDelay >= 100 ) {
+        timingDelay[ 20 ] += 1;
+    }
+    else if ( msDelay >= 10 ) {
+        timingDelay[ 10 + (msDelay / 10) ] += 1;
+    }
+    else {
+        timingDelay[ msDelay ] += 1;
+        timingDelay[ 10   ]    += 1;
+    }
+}
+
 
 ////////////////////////////////////////////////////////
 //
@@ -291,9 +309,9 @@ void MEASURE::begin( int scale_100 )
     Serial.println();
 
     #ifdef TASK_MEASURE_CORE
-    BaseType_t measure_taskCreated = xTaskCreatePinnedToCore (vTaskMeasure, "Measure", MEASURE_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL, TASK_MEASURE_CORE);
+    BaseType_t measure_taskCreated = xTaskCreatePinnedToCore (vTaskMeasure, "Measure", MEASURE_STACK_SIZE, NULL, tskMEASURE_PRIORITY, NULL, TASK_MEASURE_CORE);
     #else
-    BaseType_t measure_taskCreated = xTaskCreate (vTaskMeasure, "Measure", MEASURE_STACK_SIZE, NULL, tskNORMAL_PRIORITY, NULL);
+    BaseType_t measure_taskCreated = xTaskCreate (vTaskMeasure, "Measure", MEASURE_STACK_SIZE, NULL, tskMEASURE_PRIORITY, NULL);
     #endif
 }
 

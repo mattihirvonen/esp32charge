@@ -78,6 +78,7 @@ String httpRequestHandlerCallback (char *httpRequest, httpConnection *hcn) {
                                                                                       return Utils.httpCharge(1,"setAh",90);
                                                                                   }
                     else if (httpRequestStartsWith ("GET /example01.html "))      { // used by example 01: Dynamically generated HTML page
+                                                                                      Utils.httpCharge(1,"setAh",0);
                                                                                       return "<HTML>Example 01 - dynamic HTML page<br><br><hr />" + String (digitalRead (LED_BUILTIN) ? "Led is on." : "Led is off.") + "<hr /></HTML>";
                                                                                   }
                     else if (httpRequestStartsWith ("GET /example07.html "))      { // used by example 07
