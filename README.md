@@ -64,7 +64,11 @@ Other significant things:
 
 ToDo:
 - Web interface to access current measurement data in boat (WiFi Access Point)
-- Install in boat and calibrate measurement (we will use original battery cable harness as current sense shunt resistor)
+- Install in boat and calibrate measurement (use new current sense shunt resistor, see PDF data)
+- Change sample rate to 10 ms (100 Hz)
+- Add PSRAM to collect  "raw mA" measurement data burst(s) for osciloscope type visual graphic current vs time view
+- Save data burst(s) to filesystem for later analysis (FTP transfer)
+- Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (webasto) 
 
 Rest of this README is original template projec's README (for additional info)
 
