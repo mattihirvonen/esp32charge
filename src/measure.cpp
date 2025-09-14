@@ -143,7 +143,7 @@ void vTaskMeasure( void * pvParameters )
     // Note: Select SAMPLES_PER_SECOND between range 10 ... 100
     // ( 10, 20, 25, 40, 50, 100 )
 
-    #define SAMPLES_PER_SECOND   20
+    #define SAMPLES_PER_SECOND   100
     #define SAMPLE_PERIOD       (1000 / SAMPLES_PER_SECOND)    // [ms]
 
     int ledstate = 0;
