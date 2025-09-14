@@ -7,7 +7,7 @@ Tiller pilot motor drives very short periods (typically one to two secons at tim
 Sample rate may be need to change shorter. INA219 chip will software configure to
 do 16 ADC convesions averaging by silicon which takes about 8.5 ms.
 INA219 chip sensitivity is 10 uV / bit (12 bit conversion).
-Other alternative common used module type INA226 have sensitivity 1 uV / bit
+Other alternative common used module type INA226 have sensitivity 2.5 uV / bit
 (16 bit conversion).
 Battery charging calculation expects efficiency by default to be 80% (software feature)
 
