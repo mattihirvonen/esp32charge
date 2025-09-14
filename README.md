@@ -39,9 +39,10 @@ New software modules and configuration files are
 - *adcmeasure.cpp / .h* - fixed separated ADC measurement functions for telnet commands (support NodeMCU ESP32 JoyIT and SeeeD Studio XIAO ESP32-S3)
 - *measure.cpp / .h* - current measurement task, which use INA219 measurement chip (I2C bus device)
 - *ina219.cpp / .h* - Aduino project style driver code module to access measurement chip
+- *ina226.cpp / .h* - Aduino project style driver code module to access measurement chip
 - *util.cpp / .h* - contain telnet server's command extensions executable code(s)
 - *ina219.pdf* - data sheet of measuremen chip
-- *ina226.pdf* - data sheet of measuremen chip
+- *ina226.pdf* - data sheet of measuremen chip (recommended for new desig)
 - *FL2C100.pdf* - data sheet of current measurement shunt resistor
 - *plaformio.ini* - PlatformIO project configuration file
 - *partitions_ESP32_\*.csv* - flash memory partitioning configuration files used by platformIO build process (referenced in platformio.ini file)
@@ -56,20 +57,26 @@ New telnet commands:
 - *fwupdate* - firmware boot code update to flash chip from file system "/firmware.bin" (use FTP to upload file)
 
 Other significant things:
-- WinSCP's FTP feel to operate well with application
+- WinSCP's FTP feel to operate well with ESP32 application
+- BeyondCompare's FTP do not work with ESP32 application
+- Sourcetree is good alternative to GitHub Desktop application (ofcource there are many other good alternatives)
+- Measurement sample rate jitter for charge state measurement is enough good (verified using 10 ms sample rate, use telnet command "charge stat" - results requre interpret by user!)
 - Oscilloscope web page and code have new ADC gain selection "ATTEN"
 - Change oscilloscope's horizontal speed selection units as ordinary scope(s) use time/div
+- Osciloscope's sample rate using two core ESP32S3 running 240 MHz is quite poor (17 samples / 50 us digital input,
+  7 samples / 200 us analog free run, analog sampling may have 200 us gaps in middle of measurement data !!!!)
 - Original code missing ADC initialization / configuration at all (initialization added to oscilloscope code)
-- Commenting WiFi configuration options more reader covinient and add optional feature to clear WiFi configuration files from flash file system at boot time (when user make wrong configuration and do net get WiFi connection to target device) 
+- Commenting WiFi configuration options more reader covinient and add optional feature to clear WiFi configuration files from flash file system at boot time (when user make wrong configuration and do not get WiFi connection to target device) 
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
 
 ToDo:
-- Web interface to access current measurement data in boat (WiFi Access Point)
-- Install in boat and calibrate measurement (use new current sense shunt resistor, see PDF data)
-- Change sample rate to 10 ms (100 Hz)
+- (Better) web interface to access current measurement data in boat (WiFi Access Point)
+- Install in boat and calibrate measurement (use new current sense shunt resistor, see PDF data) - done
+- Change sample rate to 10 ms (100 Hz) - done
 - Add PSRAM to collect  "raw mA" measurement data burst(s) for osciloscope type visual graphic current vs time view
-- Save measurement data burst(s) to file system for later analysis (FTP transfer)
-- Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (webasto) 
+- Save charge measurement data burst(s) to file system for later analysis (FTP transfer to PC for post analysis)
+- Graphical web page of charge history
+- Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (webasto), etc...
 
 Rest of this README is original template projec's README (for additional info)
 
