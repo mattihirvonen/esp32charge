@@ -63,8 +63,13 @@ Other significant things:
 - Measurement sample rate jitter for charge state measurement is enough good (verified using 10 ms sample rate, use telnet command "charge stat" - results requre interpret by user!)
 - Oscilloscope web page and code have new ADC gain selection "ATTEN"
 - Change oscilloscope's horizontal speed selection units as ordinary scope(s) use time/div
-- Osciloscope's sample rate using two core ESP32S3 running 240 MHz is quite poor (17 samples / 50 us digital input,
+- Oscilloscope's sample rate using two core ESP32S3 running 240 MHz is quite poor (17 samples / 50 us digital input,
   7 samples / 200 us analog free run, analog sampling may have 200 us gaps in middle of measurement data !!!!)
+- Alternative oscilloscope software platform: ESP32S3 processor contain also Ultra-low-power RISC-V (RV32IMC)
+  coprocessor clocked at 17.5 MHz approximately (https://en.wikipedia.org/wiki/RISC-V).
+- Probably ADC sampling can do faster and with more accurate sample rate using this RISC coprocessor core.
+- NOTE: ESP32's ADC conversion is quite non linear (see specs) and might require some kind linearization lookup table system.
+- Lets make independent oscilloscope project and do not try to include into this project.
 - Original code missing ADC initialization / configuration at all (initialization added to oscilloscope code)
 - Commenting WiFi configuration options more reader covinient and add optional feature to clear WiFi configuration files from flash file system at boot time (when user make wrong configuration and do not get WiFi connection to target device) 
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
