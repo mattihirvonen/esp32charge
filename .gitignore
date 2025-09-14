@@ -6,5 +6,8 @@
 .vscode/ipch
 .idea
 *.log
+*.depend
+*.layout
 linux/bin/*
 linux/obj/*
+doc/*.jpg

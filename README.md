@@ -42,6 +42,7 @@ New software modules and configuration files are
 - *util.cpp / .h* - contain telnet server's command extensions executable code(s)
 - *ina219.pdf* - data sheet of measuremen chip
 - *ina226.pdf* - data sheet of measuremen chip
+- *FL2C100.pdf* - data sheet of current measurement shunt resistor
 - *plaformio.ini* - PlatformIO project configuration file
 - *partitions_ESP32_\*.csv* - flash memory partitioning configuration files used by platformIO build process (referenced in platformio.ini file)
 
@@ -51,7 +52,7 @@ New telnet commands:
 - *ina [reg]* - read INDA219 register
 - *ina [reg] [data]* - write "data" to INA219 chip register "reg". Data value can be 10 or 16 based (0x.. prefix)
 - *charge* - print current value [A], current charged/discharged in [As] and [Ah]
-- *charge [stat]* - print measure task's self measuremnt debug statistics of task's timings
+- *charge [stat]* - print measure task's self measuremnt debug statistics of task's timings [ms] and [10*ms]
 - *fwupdate* - firmware boot code update to flash chip from file system "/firmware.bin" (use FTP to upload file)
 
 Other significant things:
@@ -67,7 +68,7 @@ ToDo:
 - Install in boat and calibrate measurement (use new current sense shunt resistor, see PDF data)
 - Change sample rate to 10 ms (100 Hz)
 - Add PSRAM to collect  "raw mA" measurement data burst(s) for osciloscope type visual graphic current vs time view
-- Save data burst(s) to filesystem for later analysis (FTP transfer)
+- Save measurement data burst(s) to file system for later analysis (FTP transfer)
 - Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (webasto) 
 
 Rest of this README is original template projec's README (for additional info)
