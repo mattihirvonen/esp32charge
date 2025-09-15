@@ -60,14 +60,15 @@ Other significant things:
 - WinSCP's FTP feel to operate well with ESP32 application
 - BeyondCompare's FTP do not work with ESP32 application
 - Sourcetree is good alternative to GitHub Desktop application (ofcource there are many other good alternatives)
-- Measurement sample rate jitter for charge state measurement is enough good (verified using 10 ms sample rate, use telnet command "charge stat" - results requre interpret by user!)
+- Measurement sample rate jitter for charge state measurement is enough good
+  (verified using 10 ms sample rate, use telnet command "charge stat" - results requre some interpret by user!)
 - Oscilloscope web page and code have new ADC gain selection "ATTEN"
 - Change oscilloscope's horizontal speed selection units as ordinary scope(s) use time/div
 - Oscilloscope's sample rate using two core ESP32S3 running 240 MHz is quite poor (17 samples / 50 us digital input,
   7 samples / 200 us analog free run, analog sampling may have 200 us gaps in middle of measurement data !!!!)
 - Alternative oscilloscope software platform: ESP32S3 processor contain also Ultra-low-power RISC-V (RV32IMC)
   coprocessor clocked at 17.5 MHz approximately (https://en.wikipedia.org/wiki/RISC-V).
-- Probably ADC sampling can do faster and with more accurate sample rate using this RISC coprocessor core.
+  - Probably ADC sampling can do faster and with more accurate sample rate using this RISC coprocessor core.
 - NOTE: ESP32's ADC conversion is quite non linear (see specs) and might require some kind linearization lookup table system.
 - Lets make independent oscilloscope project and do not try to include into this project.
 - Original code missing ADC initialization / configuration at all (initialization added to oscilloscope code)
@@ -85,7 +86,7 @@ ToDo:
 
 Alternatives:
 - There are some interesting commercial products from Victron Energy
-- These devices can by from ClassOhlson, Marineakauppa, Marinea, etc...
+- These devices can buy from ClassOhlson, Marineakauppa, Marinea, etc...
 - Smart shun is about 90e (300A version), BMV-712 (500A) is 170e ... 250e, BMV-700 (500A) is 125e ... 170e
 - Warning: BMV-700 do not contain internal Bluetooth (buy BT or RS232 adapter
   make extra costs and result is near BMV-712 price)
