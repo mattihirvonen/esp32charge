@@ -78,13 +78,13 @@ ToDo:
 - (Better) web interface to access current measurement data in boat (WiFi Access Point)
 - Install in boat and calibrate measurement (use new current sense shunt resistor, see PDF data) - done
 - Change sample rate to 10 ms (100 Hz) - done
-- Add PSRAM to collect  "raw mA" measurement data burst(s) for osciloscope type visual graphic current vs time view
+- Add PSRAM to collect  "raw mA" or voltage measurement data burst(s) for osciloscope type visual graphic current vs time view
 - Save charge measurement data burst(s) to file system for later analysis (FTP transfer to PC for post analysis)
 - Graphical web page of charge history
 - Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (webasto), etc...
 
 Alternatives:
-- There are some interesting commercial products from Victron Enrgy
+- There are some interesting commercial products from Victron Energy
 - These devices can by from ClassOhlson, Marineakauppa, Marinea, etc...
 - Smart shun is about 90e (300A version), BMV-712 (500A) is 170e ... 250e, BMV-700 (500A) is 125e ... 170e
 - Warning: BMV-700 do not contain internal Bluetooth (buy BT or RS232 adapter
@@ -93,9 +93,17 @@ Alternatives:
 - https://www.victronenergy.com/upload/documents/Datasheet-BMV-712-Smart-EN.pdf
 - https://www.victronenergy.com/upload/documents/Datasheet-BMV-700-series-EN.pdf
 - All these devices have interesting 4 pin serial port connector for hobbyist
+- Even these devices offers serial port communication to collect measurement data,
+  communication and measurement sample ratio is slow and do not offer possibility to make oscilloscope style measurements of following cases
+  - voltage drop vs time at starting event (for example one sample per ms, feature ToDo...)
+  - exact current consumpion of tiller pilot durin active ("servo motor") motion drive, where motor drives typically
+    one or two second (feature ToDo...)
 - https://www.victronenergy.com/live/open_source:start
+- https://www.victronenergy.fi/battery-monitors/smart-battery-shunt#downloads-technical-information
 - https://www.victronenergy.com/upload/documents/VE.Direct-Protocol-3.34.pdf
+- https://www.victronenergy.com/upload/documents/BMV-7xx-HEX-Protocol.pdf (also SmartShunt)
 - https://www.victronenergy.com/upload/documents/Technical-Information-Data-communication-with-Victron-Energy-products_EN.pdf
+- https://www.victronenergy.com/media/pg/BMV-700/en/installation.html
 
 Rest of this README is original template projec's README (for additional info)
 
