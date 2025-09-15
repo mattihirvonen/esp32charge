@@ -83,6 +83,20 @@ ToDo:
 - Graphical web page of charge history
 - Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (webasto), etc...
 
+Alternatives:
+- There are some interesting commercial products from Victron Enrgy
+- These devices can by from ClassOhlson, Marineakauppa, Marinea, etc...
+- Smart shun is about 90e (300A version), BMV-712 (500A) is 170e ... 250e, BMV-700 (500A) is 125e ... 170e
+- Warning: BMV-700 do not contain internal Bluetooth (buy BT or RS232 adapter
+  make extra costs and result is near BMV-712 price)
+- https://www.victronenergy.com/upload/documents/Datasheet-SmartShunt-IP65-EN-.pdf
+- https://www.victronenergy.com/upload/documents/Datasheet-BMV-712-Smart-EN.pdf
+- https://www.victronenergy.com/upload/documents/Datasheet-BMV-700-series-EN.pdf
+- All these devices have interesting 4 pin serial port connector for hobbyist
+- https://www.victronenergy.com/live/open_source:start
+- https://www.victronenergy.com/upload/documents/VE.Direct-Protocol-3.34.pdf
+- https://www.victronenergy.com/upload/documents/Technical-Information-Data-communication-with-Victron-Energy-products_EN.pdf
+
 Rest of this README is original template projec's README (for additional info)
 
 # =================================
