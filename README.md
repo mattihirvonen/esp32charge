@@ -64,8 +64,9 @@ Other significant things:
   (verified using 10 ms sample rate, use telnet command "charge stat" - results requre some interpret by user!)
 - Oscilloscope web page and code have new ADC gain selection "ATTEN"
 - Change oscilloscope's horizontal speed selection units as ordinary scope(s) use time/div
-- Oscilloscope's sample rate using two core ESP32S3 running 240 MHz is quite poor (17 samples / 50 us digital input,
-  7 samples / 200 us analog free run, analog sampling may have 200 us gaps in middle of measurement data !!!!)
+- Oscilloscope's sample rate using two core ESP32S3 running 240 MHz is quite poor with higher horizontal speeds
+  - 17 samples / 50 us digital input,
+  - 7 samples / 200 us analog free run, analog sampling may have 200 us gaps in middle of measurement data !!!!
 - Alternative oscilloscope software platform: ESP32S3 processor contain also Ultra-low-power RISC-V (RV32IMC)
   coprocessor clocked at 17.5 MHz approximately (https://en.wikipedia.org/wiki/RISC-V).
   - Probably ADC sampling can do faster and with more accurate sample rate using this RISC coprocessor core.
@@ -81,6 +82,7 @@ ToDo:
 - Change sample rate to 10 ms (100 Hz) - done
 - Add PSRAM to collect  "raw mA" or voltage measurement data burst(s) for osciloscope type visual graphic current vs time view
 - Save charge measurement data burst(s) to file system for later analysis (FTP transfer to PC for post analysis)
+- Single shot / free run selection to oscilloscope
 - Graphical web page of charge history
 - Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (webasto), etc...
 
