@@ -54,6 +54,7 @@ New telnet commands:
 - *ina [reg] [data]* - write "data" to INA219 chip register "reg". Data value can be 10 or 16 based (0x.. prefix)
 - *charge* - print current value [A], current charged/discharged in [As] and [Ah]
 - *charge [stat]* - print measure task's self measuremnt debug statistics of task's timings [ms] and [10*ms]
+- *export* - export measurement history data file (little endian binary format - struct dataset_t)
 - *fwupdate* - firmware boot code update to flash chip from file system "/firmware.bin" (use FTP to upload file)
 
 Other significant things:

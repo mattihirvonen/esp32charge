@@ -563,6 +563,10 @@
                                               return "charge command fail";
                                           }
 
+          else if (argv0Is ("export"))    {
+                                              return Utils.exportHistory();
+                                          }
+                                          
           else if (argv0Is ("fwupdate"))  {
                                               if (argc == 1) {  return Utils.fwupdate (0, 0);         }
                                               if (argc == 2) {  return Utils.fwupdate (1, argv[1]);   }

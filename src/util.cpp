@@ -246,7 +246,7 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
 }
 
 
-int UTIL::exportHistory( void )
+const char * UTIL::exportHistory( void )
 {
     char filename[32] = "/history.dat";
 
@@ -266,7 +266,7 @@ int UTIL::exportHistory( void )
         measure.write( (const uint8_t*) &dataset, sizeof(dataset_t) );
     }
     measure.close();
-    return 0; // OK
+    return "Done";
 }
 
 //==================================================================================

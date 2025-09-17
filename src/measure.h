@@ -5,7 +5,7 @@
 #include "Arduino.h"
 #include "Wire.h"
 
-#define  HISTORY_SIZE  25000  // Count of data entries (ring buffer)
+#define  HISTORY_SIZE  2000  // Count of data entries (ring buffer)
 
 // History example:
 // - 25000 data samples * 8 bytes/sample => buffer size 200 kB
