@@ -246,14 +246,9 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
 }
 
 
-// ToDo: Refactor...
 int UTIL::exportHistory( void )
 {
     char filename[32] = "/history.dat";
-
-    extern history_t history;  // ToDo: Refactor
-
-    int ix = history.wrix;     // ToDo: Refactor
 
     if (LittleFS.exists(filename)) {
         LittleFS.remove(filename);
@@ -262,15 +257,13 @@ int UTIL::exportHistory( void )
     File    measure = LittleFS.open(filename, "w");
     MEASURE data;
 
-    for ( int i = 0; i < HISTORY_SIZE; i++ )
+    data.getHistoryData( NULL, 0 );
+    for ( int i = 2; i < (HISTORY_SIZE - 2); i++ )
     {
         dataset_t dataset;
 
-        data.getHistoryData( &dataset, ix );
+        data.getHistoryData( &dataset, i );
         measure.write( (const uint8_t*) &dataset, sizeof(dataset_t) );
-        if ( ++ix >= HISTORY_SIZE ) {
-            ix = 0;
-        }
     }
     measure.close();
     return 0; // OK

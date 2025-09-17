@@ -481,9 +481,19 @@ int MEASURE::getStat( int select )
 // Get measurement history data
 int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
 {
+    static int start;
+
+    if ( !data || !index ) {   // Save reference "data pointer" for later calls
+        start = history.wrix;  // "wrix" might change between sub sequent calls
+        return 0;              // to this function (by MEASURE task)
+    }
     if ( index >= HISTORY_SIZE ) {
-        memset( data, 0, sizeof(dataset_t) );
-        return 0;
+         memset( data, 0, sizeof(dataset_t) );
+         return 0;
+    }
+    index += start;
+    if ( index >= HISTORY_SIZE ) {
+         index -= HISTORY_SIZE;
     }
     memcpy( data, &history.data[index], sizeof(dataset_t) );
     return 1; 
