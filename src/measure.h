@@ -7,6 +7,9 @@
 
 #define  HISTORY_SIZE  25000  // Count of data entries (ring buffer)
 
+// History example:
+// - 25000 data samples * 8 bytes/sample => buffer size 200 kB
+// - 25000 data samples * 10 sec. sample period => 2.875 days measurement history
 
 typedef struct          // Size 8 bytes
 {
@@ -52,8 +55,11 @@ class MEASURE
         int   setAh( int Ah );
         int   setEfficiency( int percent );
 
-
         int   getStat( int select );
+        int   getHistoryData( dataset_t *data, unsigned int index );
+        int   setHistoryPeriod( unsigned int period_s );
+        int   getHistoryPeriod( void );
+
 
     private:
 /*

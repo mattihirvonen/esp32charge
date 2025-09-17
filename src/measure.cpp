@@ -476,3 +476,30 @@ int MEASURE::getStat( int select )
 
     return timingDelay[ select ]; 
 }
+
+
+// Get measurement history data
+int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
+{
+    if ( index >= HISTORY_SIZE ) {
+        memset( data, 0, sizeof(dataset_t) );
+        return 0;
+    }
+    memcpy( data, &history.data[index], sizeof(dataset_t) );
+    return 1; 
+}
+
+
+// Get measurement history period [s]
+int MEASURE::getHistoryPeriod( void )
+{
+    return  history.period;
+}
+
+
+// Set measurement history period [s]
+int MEASURE::setHistoryPeriod( unsigned int period_s )
+{
+    history.period = period_s;
+    return  period_s;
+}
