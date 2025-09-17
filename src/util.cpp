@@ -245,6 +245,37 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
     return  "404 Page not Found";
 }
 
+
+// ToDo: Refactor...
+int UTIL::exportHistory( void )
+{
+    char filename[32] = "/history.dat";
+
+    extern history_t history;  // ToDo: Refactor
+
+    int ix = history.wrix;     // ToDo: Refactor
+
+    if (LittleFS.exists(filename)) {
+        LittleFS.remove(filename);
+    }
+
+    File    measure = LittleFS.open(filename, "w");
+    MEASURE data;
+
+    for ( int i = 0; i < HISTORY_SIZE; i++ )
+    {
+        dataset_t dataset;
+
+        data.getHistoryData( &dataset, ix );
+        measure.write( (const uint8_t*) &dataset, sizeof(dataset_t) );
+        if ( ++ix >= HISTORY_SIZE ) {
+            ix = 0;
+        }
+    }
+    measure.close();
+    return 0; // OK
+}
+
 //==================================================================================
 
 void reset( int softReboot )
