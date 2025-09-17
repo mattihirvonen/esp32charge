@@ -70,7 +70,7 @@ Other significant things:
 - Alternative oscilloscope software platform: ESP32S3 processor contain also Ultra-low-power RISC-V (RV32IMC)
   coprocessor clocked at 17.5 MHz approximately (https://en.wikipedia.org/wiki/RISC-V).
   - Probably ADC sampling can do faster and with more accurate sample rate using this RISC coprocessor core.
-- NOTE: ESP32's ADC conversion is quite non linear (see specs) and might require some kind linearization lookup table system.
+- NOTE: ESP32's ADC conversion is quite non linear (see CPU specs) and might require some kind linearization lookup table system.
 - Lets make independent oscilloscope project and do not try to include into this project.
 - Original code missing ADC initialization / configuration at all (initialization added to oscilloscope code)
 - Commenting WiFi configuration options more reader covinient and add optional feature to clear WiFi configuration files from flash file system at boot time (when user make wrong configuration and do not get WiFi connection to target device) 

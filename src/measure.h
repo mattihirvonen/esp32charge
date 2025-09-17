@@ -5,6 +5,25 @@
 #include "Arduino.h"
 #include "Wire.h"
 
+#define  HISTORY_SIZE  25000  // Count of data entries (ring buffer)
+
+
+typedef struct          // Size 8 bytes
+{
+    int16_t    mV;      // Ubus
+    int16_t    mA;      // Charge current
+    int32_t    mAs;     // Charge state
+}dataset_t;
+
+typedef struct
+{
+    int        period;  // Sample period [s]
+    int        wrix;    // Index of last write;
+    //
+    dataset_t  data[HISTORY_SIZE];
+} history_t;
+
+
 class MEASURE
 {
     public:

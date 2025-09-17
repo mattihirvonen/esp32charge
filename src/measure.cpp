@@ -62,9 +62,12 @@ Rmeasure INA module:
 #include "INA219.h"
 #include "measure.h"
 
-#define  CAPASITY_Ah  90
+#define  CAPASITY_Ah     90     // Default battery capacity
+#define  HISTORY_PERIOD  10     // Default data set sample rate [s]
 
 void dmesg (char *message1);
+
+history_t  history;
 
 // Strategy:
 // - Raise measure task's priority over other task's priority to
@@ -121,6 +124,7 @@ static volatile int _compU  = 50;       // bus voltage sense wire loss compensat
 #endif
 
 void collect_task_schedule_delay_statistics( int msDelay );
+void update_measurement_history( int mV, int mA1s, int mAs );
 
 
 // Trick: Set "scale" multiplier to 612 (== 6.12x)
@@ -175,7 +179,10 @@ void vTaskMeasure( void * pvParameters )
     xLastWakeTime = xTaskGetTickCount ();
     memset( (void*)timingDelay, sizeof(timingDelay), 0 );
 
-    _mAs = 0;  //  _capacity_mAs;
+    // Initialize measurement data
+    _mAs = 0;                              //  _capacity_mAs;
+    memset(&history, 0, sizeof(history));
+    history.period = HISTORY_PERIOD;
     
     while ( 1 )
     {
@@ -239,6 +246,7 @@ void vTaskMeasure( void * pvParameters )
             if( (_mAs <  _capacity_mAs) || (sum_mAs < 0) ) {
                  _mAs += mA_charge;
             }
+            update_measurement_history( _mV, _mA1s, _mAs );
         }
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
         else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)
@@ -269,6 +277,29 @@ void collect_task_schedule_delay_statistics( int msDelay )
     }
 }
 
+
+// Function called once per second
+void update_measurement_history( int mV, int mA, int mAs )
+{
+    static unsigned int counter;
+
+    unsigned int   ix = history.wrix + 1;
+    dataset_t     *pd;
+
+    if ( ++counter < history.period ) {
+        return;
+    }
+    counter = 0;
+
+    if ( ix >= HISTORY_SIZE ) {
+         ix  = 0;
+    }
+    history.wrix = ix;
+    pd = &history.data[ix];
+    pd->mV  = mV;
+    pd->mA  = mA;
+    pd->mAs = mAs;
+}
 
 ////////////////////////////////////////////////////////
 //
