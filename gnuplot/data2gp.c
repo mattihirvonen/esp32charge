@@ -55,8 +55,8 @@ int print_gnuplot(dataset_t data[], int items)
         {
             printf("%7.3f  %7.3f  %7.3f  %6.3f\n", time, Ah, Ibus, Ubus);
             rows++;
+            time += dt;
         }
-        time += dt;
     }
     return rows;
 }
