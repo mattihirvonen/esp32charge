@@ -5,11 +5,13 @@
 #include "Arduino.h"
 #include "Wire.h"
 
-#define  HISTORY_SIZE  4000  // Count of data entries (ring buffer)
+#define  HISTORY_SIZE  10000  // Count of data entries (ring buffer)
 
 // History example:
-// - 25000 data samples * 8 bytes/sample => buffer size 200 kB
-// - 25000 data samples * 10 sec. sample period => 2.875 days measurement history
+// - 10000 data samples * 8 bytes/sample => buffer size 80 kB
+// - 10000 data samples * 10 sec. sample period => 27.7h measurement history
+// Probably 16000 is max samples without PSRAM, because measure.flush() method
+// feel not to operate and flush write(s) to LittleFS flash memory.
 
 typedef struct          // Size 8 bytes
 {

@@ -246,10 +246,14 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
 }
 
 // https://randomnerdtutorials.com/esp32-write-data-littlefs-arduino/
+// https://github.com/lorol/LITTLEFS/issues/10
 
 const char * UTIL::exportHistory( void )
 {
+    #define FLUSH_TRIGGER 0x8000
+
     char filename[32] = "/history.dat";
+    int  bytes        = 0;
 
     if (LittleFS.exists(filename)) {
         LittleFS.remove(filename);
@@ -265,9 +269,15 @@ const char * UTIL::exportHistory( void )
 
         data.getHistoryData( &dataset, i );
         measure.write( (const uint8_t*) &dataset, sizeof(dataset_t) );
+        bytes += sizeof(dataset_t);
+
+        if (bytes > FLUSH_TRIGGER) {
+            bytes = 0;
+            measure.flush();
+        }
     }
 //  measure.sync();   // Not supported method
-    measure.flush();  // No compile time error
+//  measure.flush();  // No compile time error
     measure.close();
     return "Done";
 }
