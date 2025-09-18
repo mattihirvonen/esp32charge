@@ -34,8 +34,8 @@ Project is ported with minimal effort from Arduino IDE environment to
 more "professional" Visual Studio Code + PlatformIO plugin development environment.
 PlatformIO source files resides different folder structure as
 Arduino IDE project files. PlatformIO active sources are in sub directory tree "src".
-New software modules and configuration files are
 
+New software modules and configuration files
 - *adcmeasure.cpp / .h* - fixed separated ADC measurement functions for telnet commands (support NodeMCU ESP32 JoyIT and SeeeD Studio XIAO ESP32-S3)
 - *measure.cpp / .h* - current measurement task, which use INA219 measurement chip (I2C bus device)
 - *ina219.cpp / .h* - Aduino project style driver code module to access measurement chip
@@ -47,7 +47,7 @@ New software modules and configuration files are
 - *plaformio.ini* - PlatformIO project configuration file
 - *partitions_ESP32_\*.csv* - flash memory partitioning configuration files used by platformIO build process (referenced in platformio.ini file)
 
-New telnet commands:
+New telnet commands
 - *adc [gpio]* - where "gpio" is gpio pin number
 - *ina* - reset INA219 chip and set continuous 16 A/D samples averaging mode (takes about 8.5 ms to make 16 A/D conversions by hardware)
 - *ina [reg]* - read INDA219 register
@@ -57,7 +57,7 @@ New telnet commands:
 - *export* - export measurement history data file (little endian binary format - struct dataset_t)
 - *fwupdate* - firmware boot code update to flash chip from file system "/firmware.bin" (use FTP to upload file)
 
-Other significant things:
+Other significant things
 - WinSCP's FTP feel to operate well with ESP32 application
 - PuTTY feel to operate well with ESP32 application
 - BeyondCompare's FTP do not work with ESP32 application
@@ -79,11 +79,11 @@ Other significant things:
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
 
 
-NOTE: Little FS !!!!!!!!!
--------------------------
+### NOTE: Little FS !!!!!!!!!
 *LittleFS keeps file writes in a buffer until the file is explicitly flushed or closed. This behavior is intentional and designed to optimize performance by reducing the number of write operations to the underlying storage, which can be slow and wear-sensitive (e.g., in flash memory).*
 
-Key Points:
+##### Key Points:
+
 Buffered Writes: When you write data to a file in LittleFS, the data is stored in a memory buffer rather than being immediately written to the storage device.
 
 Flush or Close: To ensure the data is physically written to the storage, you need to either:
@@ -97,22 +97,24 @@ Potential Risks: If the system crashes or loses power before a flush or close op
 
 This behavior is common in many file systems to balance performance and storage longevity.
 
-*This means for application program*
-- Application crash or write at least corrupted data to flash if there is not enough free (conventional) heap available
+##### This means for application program
+- Application crash or write at least corrupted data to flash if there is not enough free (conventional)
+  heap buffer space available
    
 
-ToDo:
------
+### ToDo
 - (Better) web interface to access current measurement data in boat (WiFi Access Point)
 - Install in boat and calibrate measurement (use new current sense shunt resistor, see PDF data) - done
 - Change sample rate to 10 ms (100 Hz) - done
-- Add PSRAM to collect  "raw mA" or voltage measurement data burst(s) for osciloscope type visual graphic current vs time view
-- Save charge measurement data burst(s) to file system for later analysis (FTP transfer to PC for post analysis)
+- Add PSRAM to collect larger "raw mA" or voltage measurement data
+- Data measurement burst(s) for osciloscope type visual graphic current vs time view (with higher samplerate) to see
+  for example voltage drop of starter battery during engine start
+- Save charge measurement data burst(s) to file system for later analysis (FTP transfer to PC for post analysis) - partially done
 - Single shot / free run selection to oscilloscope
 - Graphical web page of charge history
 - Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (Ebersprecher), etc...
 
-Alternatives:
+### Alternatives
 - There are some interesting commercial products from Victron Energy
 - These devices can buy from ClassOhlson, Marineakauppa, Marinea, etc...
 - Smart shun is about 90e (300A version), BMV-712 (500A) is 170e ... 250e, BMV-700 (500A) is 125e ... 170e
