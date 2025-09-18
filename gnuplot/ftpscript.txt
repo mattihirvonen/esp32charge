@@ -1,0 +1,7 @@
+open 192.168.2.1
+root
+rootpassword
+cd  /
+lcd .
+get history.dat
+bye
