@@ -5,7 +5,7 @@
 #include "Arduino.h"
 #include "Wire.h"
 
-#define  HISTORY_SIZE  2000  // Count of data entries (ring buffer)
+#define  HISTORY_SIZE  4000  // Count of data entries (ring buffer)
 
 // History example:
 // - 25000 data samples * 8 bytes/sample => buffer size 200 kB
@@ -13,15 +13,15 @@
 
 typedef struct          // Size 8 bytes
 {
-    int16_t    mV;      // Ubus
-    int16_t    mA;      // Charge current
     int32_t    mAs;     // Charge state
+    int16_t    mA;      // Charge current
+    int16_t    mV;      // Ubus
 }dataset_t;
 
 typedef struct
 {
-    int        period;  // Sample period [s]
-    int        wrix;    // Index of last write;
+    unsigned int  period;  // Sample period [s]
+    unsigned int  wrix;    // Index of last write;
     //
     dataset_t  data[HISTORY_SIZE];
 } history_t;

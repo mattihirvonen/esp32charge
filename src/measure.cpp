@@ -282,9 +282,9 @@ void collect_task_schedule_delay_statistics( int msDelay )
 void update_measurement_history( int mV, int mA, int mAs )
 {
     static unsigned int counter;
-    static unsigned int sum_mA;
+    static          int sum_mA;
 
-    unsigned int   ix = history.wrix + 1;
+    unsigned int   ix = history.wrix;
     dataset_t     *pd;
 
     if ( ++counter < history.period ) {
@@ -293,14 +293,14 @@ void update_measurement_history( int mV, int mA, int mAs )
     }
     counter = 0;
 
-    if ( ix >= HISTORY_SIZE ) {
-         ix  = 0;
+    if ( ++ix >= HISTORY_SIZE ) {
+           ix  = 0;
     }
     history.wrix = ix;
     pd = &history.data[ix];
-    pd->mV  = mV;
-    pd->mA  = sum_mA / history.period;  // Average charge current over period
     pd->mAs = mAs;
+    pd->mA  = mA;  // sum_mA / history.period;  // Average current over period
+    pd->mV  = mV;
     sum_mA  = 0;
 }
 

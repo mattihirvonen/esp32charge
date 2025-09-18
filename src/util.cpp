@@ -245,6 +245,7 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
     return  "404 Page not Found";
 }
 
+// https://randomnerdtutorials.com/esp32-write-data-littlefs-arduino/
 
 const char * UTIL::exportHistory( void )
 {
@@ -265,6 +266,8 @@ const char * UTIL::exportHistory( void )
         data.getHistoryData( &dataset, i );
         measure.write( (const uint8_t*) &dataset, sizeof(dataset_t) );
     }
+//  measure.sync();   // Not supported method
+    measure.flush();  // No compile time error
     measure.close();
     return "Done";
 }

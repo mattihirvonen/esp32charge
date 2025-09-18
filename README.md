@@ -52,13 +52,14 @@ New telnet commands:
 - *ina* - reset INA219 chip and set continuous 16 A/D samples averaging mode (takes about 8.5 ms to make 16 A/D conversions by hardware)
 - *ina [reg]* - read INDA219 register
 - *ina [reg] [data]* - write "data" to INA219 chip register "reg". Data value can be 10 or 16 based (0x.. prefix)
-- *charge* - print current value [A], current charged/discharged in [As] and [Ah]
+- *charge* - print voltage [V],  current value [A], current charged/discharged in [As] and [Ah]
 - *charge [stat]* - print measure task's self measuremnt debug statistics of task's timings [ms] and [10*ms]
 - *export* - export measurement history data file (little endian binary format - struct dataset_t)
 - *fwupdate* - firmware boot code update to flash chip from file system "/firmware.bin" (use FTP to upload file)
 
 Other significant things:
 - WinSCP's FTP feel to operate well with ESP32 application
+- PuTTY feel to operate well with ESP32 application
 - BeyondCompare's FTP do not work with ESP32 application
 - Sourcetree is good alternative to GitHub Desktop application (ofcource there are many other good alternatives)
 - Measurement sample rate jitter for charge state measurement is enough good
@@ -77,7 +78,31 @@ Other significant things:
 - Commenting WiFi configuration options more reader covinient and add optional feature to clear WiFi configuration files from flash file system at boot time (when user make wrong configuration and do not get WiFi connection to target device) 
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
 
+
+NOTE: Little FS !!!!!!!!!
+-------------------------
+*LittleFS keeps file writes in a buffer until the file is explicitly flushed or closed. This behavior is intentional and designed to optimize performance by reducing the number of write operations to the underlying storage, which can be slow and wear-sensitive (e.g., in flash memory).*
+
+Key Points:
+Buffered Writes: When you write data to a file in LittleFS, the data is stored in a memory buffer rather than being immediately written to the storage device.
+
+Flush or Close: To ensure the data is physically written to the storage, you need to either:
+
+- Call lfs_file_sync() (flushes the buffer to storage).
+- Close the file using lfs_file_close() (automatically flushes the buffer).
+
+Why Buffering?: This approach minimizes the number of write operations, which is crucial for flash memory as it has limited write/erase cycles.
+
+Potential Risks: If the system crashes or loses power before a flush or close operation, any data in the buffer will be lost. To mitigate this, you can flush the buffer more frequently if data integrity is critical.
+
+This behavior is common in many file systems to balance performance and storage longevity.
+
+*This means for application program*
+- Application crash or write at least corrupted data to flash if there is not enough free (conventional) heap available
+   
+
 ToDo:
+-----
 - (Better) web interface to access current measurement data in boat (WiFi Access Point)
 - Install in boat and calibrate measurement (use new current sense shunt resistor, see PDF data) - done
 - Change sample rate to 10 ms (100 Hz) - done
@@ -85,7 +110,7 @@ ToDo:
 - Save charge measurement data burst(s) to file system for later analysis (FTP transfer to PC for post analysis)
 - Single shot / free run selection to oscilloscope
 - Graphical web page of charge history
-- Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (webasto), etc...
+- Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (Ebersprecher), etc...
 
 Alternatives:
 - There are some interesting commercial products from Victron Energy
