@@ -123,6 +123,7 @@ static volatile int _scaleI = 612;      // current scaling normalize to 100%
 static volatile int _compU  = 50;       // bus voltage sense wire loss compensation  [mV/A]
 #endif
 
+int  charge_percent( int mAs, int capacity_Ah );
 void collect_task_schedule_delay_statistics( int msDelay );
 void update_measurement_history( int mV, int mA1s, int mAs );
 
@@ -221,8 +222,25 @@ void vTaskMeasure( void * pvParameters )
             mV  = (mV * _scaleU ) / 1000;
             mV -= (mA * _compU  ) / 1000;
 
-            if ( mA >=0 ) {  mA_charge = ( mA * _efficiency ) / 100;  }    // Charging
-            else          {  mA_charge =   mA;                        }    // Discharging
+            // Discharging
+            if ( mA <= 0 ) {
+                 mA_charge = mA;
+            }
+            // Charging
+            else {
+                 mA_charge = (mA * _efficiency) / 100;
+
+                // Long term integrate charge state back to zero if use battery charger
+                // NOTE: This will not work with small solar panel chargers !!!
+                #define SMALL_CURRENT_mA   150
+                #define CHARGE_05Ah       (500*3600)   // 0.5 Ah
+
+                if ( mA_charge < SMALL_CURRENT_mA ) {
+                    if ( abs(_mAs) < CHARGE_05Ah  ) {
+                        mA_charge = (_mAs > 0) ? -mA_charge : mA_charge;
+                    }
+                 }
+            }
 
             if ( msDelay >= 0 )          // Some cases at start msDelay might be negative ?!!
             {
@@ -243,14 +261,22 @@ void vTaskMeasure( void * pvParameters )
             _mA1s     = sum_mA1s / samples;
             mA_charge = sum_mAs  / samples;  // Efective charge/discharge current
 
-            if( _mAs <  _capacity_mAs ) {
-                _mAs += mA_charge;
+            if ( _mAs < _capacity_mAs ) {
+                 _mAs += mA_charge;
             }
             update_measurement_history( _mV, _mA1s, _mAs );
         }
         if ( ledstate ) {  digitalWrite(LED_BUILTIN, LOW);  ledstate = 0; }  // turn the LED off by making the voltage LOW
         else            {  digitalWrite(LED_BUILTIN, HIGH); ledstate = 1; }  // turn the LED on (HIGH is the voltage level)
     }
+}
+
+
+int charge_percent( int mAs, int capacity_Ah )
+{
+    int capacity_As = capacity_Ah * 3600;
+
+    return (mAs / capacity_As) / 10;
 }
 
 
