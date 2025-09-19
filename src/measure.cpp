@@ -105,7 +105,7 @@ static volatile int _mV;                // "raw" bus   voltage measurement resul
 static volatile int _mA;                // "raw" bus   current measurement result in milli amperes
 static volatile int _mAs = 0;           // cumulative charge in milli ampere seconds
 static volatile int _mA1s;              // average current measurement over 1 second period
-static volatile int _efficiency = 75;   // battery charging efficiency [%]
+static volatile int _efficiency =  95;  // battery charging efficiency [%]
 static volatile int _offset     = -10;  // input offset error [uV]
 
 static volatile int _capacity_mAs = 1000 * 3600 * CAPASITY_Ah;
@@ -179,9 +179,9 @@ void vTaskMeasure( void * pvParameters )
     xLastWakeTime = xTaskGetTickCount ();
     memset( (void*)timingDelay, sizeof(timingDelay), 0 );
 
-    // Initialize measurement data
-    _mAs = 0;                              //  _capacity_mAs;
-    memset(&history, 0, sizeof(history));
+    // Initialize measurement data history at startup
+    _mAs = 0;
+    memset(&history, 0, sizeof(history)); // HISTORY_SIZE * sizeof(dataset_t)
     history.period = HISTORY_PERIOD;
     
     while ( 1 )
@@ -243,8 +243,8 @@ void vTaskMeasure( void * pvParameters )
             _mA1s     = sum_mA1s / samples;
             mA_charge = sum_mAs  / samples;  // Efective charge/discharge current
 
-            if( (_mAs <  _capacity_mAs) || (sum_mAs < 0) ) {
-                 _mAs += mA_charge;
+            if( _mAs <  _capacity_mAs ) {
+                _mAs += mA_charge;
             }
             update_measurement_history( _mV, _mA1s, _mAs );
         }
