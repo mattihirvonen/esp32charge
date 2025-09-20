@@ -77,6 +77,14 @@ String httpRequestHandlerCallback (char *httpRequest, httpConnection *hcn) {
                     else if (httpRequestStartsWith ("PUT /charge/setAh "))        { // used by charge, REST function for static HTML page
                                                                                       return Utils.httpCharge(1,"setAh",90);
                                                                                   }
+                    else if (httpRequestStartsWith ("GET /export.html "))         { // used by setAh0: Dynamically generated HTML page
+                                                                                      Utils.exportHistory();
+                                                                                      return "<HTML>Export measurement data history - dynamic HTML page<br><br><hr /><hr /></HTML>";
+                                                                                  }
+                    else if (httpRequestStartsWith ("GET /setAh0.html "))         { // used by setAh0: Dynamically generated HTML page
+                                                                                      Utils.httpCharge(1,"setAh",0);
+                                                                                      return "<HTML>Set Ah = 0 - dynamic HTML page<br><br><hr /><hr /></HTML>";
+                                                                                  }
                     else if (httpRequestStartsWith ("GET /example01.html "))      { // used by example 01: Dynamically generated HTML page
                                                                                       Utils.httpCharge(1,"setAh",0);
                                                                                       return "<HTML>Example 01 - dynamic HTML page<br><br><hr />" + String (digitalRead (LED_BUILTIN) ? "Led is on." : "Led is off.") + "<hr /></HTML>";
