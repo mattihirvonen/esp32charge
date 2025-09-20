@@ -14,7 +14,7 @@ typedef struct
     int16_t    mV;
 } dataset_t;
 
-const char* filename = "history.dat";
+char filename[64] = "history.dat";
 
 
 int print_data(dataset_t data[], int items)
@@ -86,22 +86,62 @@ char *file_read(int *filesize, const char *filename)
 }
 
 
-int main(void)
+void parse_args(int argc, char *argv[])
+{
+    int opt;
+
+    // put ':' in the starting of the
+    // string so that program can
+    //distinguish between '?' and ':'
+    while((opt = getopt(argc, argv, ":if:lrx")) != -1)
+    {
+        switch(opt)
+        {
+            case 'i':
+            case 'l':
+            case 'r':
+                printf("option: %c\n", opt);
+                break;
+            case 'f':
+            //  printf("filename: %s\n", optarg);
+                strcpy(filename, optarg);
+                break;
+            case ':':
+                printf("option needs a value\n");
+                break;
+            case '?':
+                printf("unknown option: %c\n", optopt);
+                break;
+        }
+    }
+
+    // optind is for the extra arguments
+    // which are not parsed
+    for(; optind < argc; optind++){
+    //  printf("extra arguments: %s\n", argv[optind]);
+        strcpy(filename, argv[optind]);
+    }
+}
+
+
+int main(int argc, char *argv[])
 {
     char *file_contents;
     int   file_size;
     int   data_items;
     int   data_rows;
 
+    parse_args(argc, argv);
+
     file_contents = file_read(&file_size, filename);
     data_items    = file_size / sizeof(dataset_t);
 
-    printf("# file_size=%d  data_items=%d\n", file_size, data_items);
+    printf("# file_name=%s  file_size=%d  data_items=%d\n", filename, file_size, data_items);
 
 //  data_rows = print_data(    (dataset_t *)file_contents, data_items );
     data_rows = print_gnuplot( (dataset_t *)file_contents, data_items );
 
-    printf("# data_rows =%d\n", data_rows);
+    printf("# data_rows=%d\n", data_rows);
 
     free(file_contents);
     exit(EXIT_SUCCESS);

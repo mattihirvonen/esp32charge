@@ -13,6 +13,8 @@ rem  echo bye               >>ftpscript.txt
 
 ftp  -s:ftpscript.txt
 
-%DATA2GP%  >history.txt
-%GNUPLOT%   plot_script.gp
+rem start 20:15
+rem %DATA2GP%  -f history.dat.alku >history.txt
 
+%DATA2GP%  -f history.dat      >history.txt
+%GNUPLOT%  -p plot_script.gp    history.txt
