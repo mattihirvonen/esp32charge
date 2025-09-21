@@ -7,7 +7,7 @@ set grid
 set ytics  5 nomirror
 set y2tics 0.2
 
-set yrange [-15:20]
+set yrange  [-15:20]
 set y2range [12.0:14.8]
 
 #plot "history.txt" using 1:2 with linespoints title "XY Data"

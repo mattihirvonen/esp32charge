@@ -10,19 +10,44 @@
 #include  <esp_int_wdt.h>
 #include  <esp_task_wdt.h>
 #include  <Update.h>
+
+// Function code definitions SHOULD NOT write into header files.
+// This yeald to compile time error(s) when try to use header file in other C7C++ source code modules.
+// Reason: Linker complains multiple defined same function code !!!
+//
+// Every function surrounded with macro POOR_CODING_PRAXIS is trick to patch original header file's
+// function to avoid this multiple definition same function code definition .
+#define  POOR_CODING_PRAXIS
+
+// Second trick is to use GCC compiler feature to avoid multiple definition error:
+// Define varibles as exten:
+// - extern diskTrafficInformationType diskTrafficInformation = {}; // measure disk Traffic on ESP32 level
+// - extern fileSys fileSystem;
+
+#if 1
+//NOTE(s):
+// - Use same file system as defined in "Esp32_servers_config.h"
+// - #include  "Esp32_servers_config.h"  // This header can not use , reason poor original code
+//
+#define     FILE_SYSTEM   FILE_SYSTEM_LITTLEFS 
+#include  "servers/fileSystem.hpp"
+#else
 #include  "LittleFS.h"
+#endif
+
 #include  "util.h"
 #include  "measure.h"          // Object(s):  MEASURE
 
 void dmesg (char *message1);
 
 // External object references 
+extern  fileSys  fileSystem;
 extern  MEASURE  Measure;
 
 // Publish object
 UTIL  Utils;
 
-int   isFirmwareUploaded = 0;  // set false for debug security
+int   isFirmwareUploaded = 1;  // set false for debug security
 
 const char *doFWupdate ( void );
 
@@ -113,13 +138,21 @@ const char * UTIL::charge( int args, const char *arg1 )
 }
 
 
-#include <time.h>
+// #include <time.h>
+// Local replacement for getUptime()
 static time_t getUptime( void )
 {
+    #if 1
     uint64_t uptime = esp_timer_get_time();   // [us]
-
     return (time_t) (uptime / 1000000);
+    #else
+    // returns the number of seconfs ESP32 has been running
+    time_t t = time (NULL);
+    return __timeHasBeenSet__ ? t - __startupTime__ :  millis () / 1000; // if the time has already been set, 2023/06/22 21:12:34 is the time when I'm writing this code, any valid time should be greater than this
+    #endif
 }
+
+
 static String UpTime( void )
 {
     String  s;
@@ -139,7 +172,6 @@ static String UpTime( void )
 
     return s;
 }
-
 
 
 static String jsonBeginS( String name, String value )
@@ -195,9 +227,8 @@ static String jsonEnd( void )
 
 String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
 {
-    #define HOSTNAME  "ESP32_SRV"
     #define SERVICE   "charge"
-    #define IDSTRING  HOSTNAME     // HOSTNAME or SERVICE
+    #define IDSTRING  "ESP32_SRV"
 
     String  s;
 
@@ -250,17 +281,37 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
 
 const char * UTIL::exportHistory( void )
 {
-    #define FLUSH_TRIGGER 0x8000
+    #define FLUSH_TRIGGER 0x2000
 
-    char filename[32] = "/history.dat";
-    int  bytes        = 0;
+    MEASURE   data;
+    char      fileName[32] = "history.dat";
+    int       bytesFlush   = 0;
+
+#if 1  // See example from ftpServer.hpp
+
+    if (!fileSystem.mounted ()) {
+        return (char *) "421 file system not mounted\r\n";
+    }
+    string  fp = fileSystem.makeFullPath (fileName, "/");
+
+    if (fileSystem.isFile (fp)) {
+        if (fileSystem.deleteFile (fp)) {
+            return (char *) "452 could not delete file\r\n";
+
+        }
+    }
+    File  f = fileSystem.open (fp, "w", true);
+
+//  unsigned long fSize = 0;
+//  if (f) { fSize = f.size (); f.close (); }
+
+#else
+    File f = LittleFS.open(filename, "w");
 
     if (LittleFS.exists(filename)) {
         LittleFS.remove(filename);
     }
-
-    File    measure = LittleFS.open(filename, "w");
-    MEASURE data;
+#endif
 
     data.getHistoryData( NULL, 0 );
     for ( int i = 2; i < (HISTORY_SIZE - 2); i++ )
@@ -268,17 +319,16 @@ const char * UTIL::exportHistory( void )
         dataset_t dataset;
 
         data.getHistoryData( &dataset, i );
-        measure.write( (const uint8_t*) &dataset, sizeof(dataset_t) );
-        bytes += sizeof(dataset_t);
+        f.write( (const uint8_t*) &dataset, sizeof(dataset_t) );
+        bytesFlush += sizeof(dataset_t);
 
-        if (bytes > FLUSH_TRIGGER) {
-            bytes = 0;
-            measure.flush();
+        if (bytesFlush > FLUSH_TRIGGER) {
+            bytesFlush = 0;
+            f.flush();  // No compile time error
+          //f.sync();   // Not supported method
         }
     }
-//  measure.sync();   // Not supported method
-//  measure.flush();  // No compile time error
-    measure.close();
+    f.close();
     return "Done";
 }
 
@@ -305,61 +355,56 @@ void progressCallBack(size_t currSize, size_t totalSize) {
 
 const char * doFWupdate ( void )
 {
+    string  name = "firmware.bin";
+    string  fp   =  fileSystem.makeFullPath (name, "/");
+
     static char reply[64];
 
     bool error = false;
 
-    if ( isFirmwareUploaded )
-    {
-        Serial.println(F("The uploaded firmware now stored in FS!"));
-        Serial.print(F("\nSearch for firmware in FS.."));
-        String name = "/firmware.bin";
-        File firmware =  LittleFS.open(name, FILE_READ);
-        if ( firmware ) {
-            Serial.println(F("found!"));
-            Serial.println(F("Try to update!"));
+    if ( !isFirmwareUploaded ) {
+        Serial.println(F("Debug: Return with out rral firmware update"));
+        snprintf(reply, sizeof(reply), "Debug: Return with out rral firmware update\n");
+        return reply;
 
-            Update.onProgress(progressCallBack);
-
-            Update.begin(firmware.size(), U_FLASH);
-            Update.writeStream(firmware);
-            if (Update.end()) {
-                Serial.println(F("Update finished!"));
-            }
-            else {
-                Serial.println(F("Update error!"));
-                Serial.println(Update.getError());
-                error = true;
-            }
-
-            firmware.close();
-
-            if ( error ) {
-                return "Update error!";  // Return to telnet with error message
-            }
-
-            String renamed = name;
-            renamed.replace(".bin", ".bak");
-            if (LittleFS.rename(name, renamed.c_str())) {
-                Serial.println(F("Firmware rename succesfully!"));
-            }
-            else {
-                Serial.println(F("Firmware rename error!"));
-                error = true;
-            }
-            if ( error )   // Return to telnet with error message
-            {
-                return "Firmware update OK, rename error!\r\nRequire reboot";
-            }
-            delay(2000);   // Wait Serial.print(s) to flow out from serial port...
-
-//          ESP.reset();
-            reset( 0 );
-        }
-        else {
-            snprintf(reply, sizeof(reply), "Can not open file: %s", name);
-            return reply;
-        }
     }
+    Serial.println(F("The uploaded firmware now stored in FS!"));
+    Serial.print(F("\nSearch firmware from FS.."));
+
+//  if ( !fileSystem.isFile (fp) ) { }
+
+    File  firmware = fileSystem.open (fp, "r", false);
+    if ( !firmware ) {
+        snprintf(reply, sizeof(reply), "Can not open file: %s", fp.c_str());
+        return reply;
+    }
+
+    Serial.println(F("found!"));
+    Serial.println(F("Try to update!"));
+
+    Update.onProgress(progressCallBack);
+
+    Update.begin(firmware.size(), U_FLASH);
+    Update.writeStream(firmware);
+    if (Update.end()) {
+        Serial.println(F("Update finished!"));
+    }
+    else {
+        Serial.println(F("Update error!"));
+        Serial.println(Update.getError());
+        error = true;
+    }
+
+    firmware.close();
+
+    if ( error ) {
+        return "Update error!";  // Return to telnet with error message
+    }
+
+    Serial.println(F("Reset...."));
+    delay(2000);   // Wait Serial.print(s) to flow out from serial port...
+//  ESP.reset();
+    reset( 0 );
+
     return "FirmwareUploaded status is false";  // Newer should reach here!
 }
