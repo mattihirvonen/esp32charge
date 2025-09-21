@@ -30,9 +30,12 @@
 // Object(s):  UTIL
 #include "util.h"
 
+// Work around for POOR_CODING_PRAXIS
+diskTrafficInformationType  diskTrafficInformation = {};   // measure disk Traffic on ESP32 level
+fileSys                     fileSystem;
+
 // External object(s)
 extern UTIL Utils;
-
 
 // Public object(s)
 MEASURE Measure;
@@ -77,11 +80,11 @@ String httpRequestHandlerCallback (char *httpRequest, httpConnection *hcn) {
                     else if (httpRequestStartsWith ("PUT /charge/setAh "))        { // used by charge, REST function for static HTML page
                                                                                       return Utils.httpCharge(1,"setAh",90);
                                                                                   }
-                    else if (httpRequestStartsWith ("GET /export.html "))         { // used by setAh0: Dynamically generated HTML page
+                    else if (httpRequestStartsWith ("GET /export.html "))         { // used to exportHistory: Dynamically generated HTML page
                                                                                       Utils.exportHistory();
                                                                                       return "<HTML>Export measurement data history - dynamic HTML page<br><br><hr /><hr /></HTML>";
                                                                                   }
-                    else if (httpRequestStartsWith ("GET /setAh0.html "))         { // used by setAh0: Dynamically generated HTML page
+                    else if (httpRequestStartsWith ("GET /resetAh.html "))        { // used to setAh=0: Dynamically generated HTML page
                                                                                       Utils.httpCharge(1,"setAh",0);
                                                                                       return "<HTML>Set Ah = 0 - dynamic HTML page<br><br><hr /><hr /></HTML>";
                                                                                   }

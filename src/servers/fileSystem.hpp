@@ -79,7 +79,8 @@
         unsigned long bytesRead;
         unsigned long bytesWritten;
     };
-    diskTrafficInformationType diskTrafficInformation = {}; // measure disk Traffic on ESP32 level
+//  diskTrafficInformationType diskTrafficInformation = {};   // measure disk Traffic on ESP32 level
+    extern diskTrafficInformationType diskTrafficInformation; // measure disk Traffic on ESP32 level
 
 
     #if (FILE_SYSTEM & FILE_SYSTEM_FAT) == FILE_SYSTEM_FAT
@@ -607,9 +608,11 @@
 
 
     // create a working instance before including time_functions.h, time_functions.h will use the fileSystem instance
-    fileSys fileSystem;
+    extern fileSys fileSystem;
 
     // strBetween function, usefull for parsing configuration files content
+
+    #ifndef  POOR_CODING_PRAXIS
 
     char *strBetween (char *buffer, size_t bufferSize, char *src, const char *left, const char *right) { // copies substring of src between left and right to buffer or "" if not found or buffer too small, return bufffer
       *buffer = 0;
@@ -635,4 +638,6 @@
       return buffer;                                                     
     }
 
-#endif
+    #endif // POOR_CODING_PRAXIS
+
+#endif // __FILE_SYSTEM__
