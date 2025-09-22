@@ -522,19 +522,23 @@ int MEASURE::getStat( int select )
 // Get measurement history data
 int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
 {
-    static int start;
+    static int wrix;              // Saved current wrix
 
-    if ( !data || !index ) {    // Save reference "data pointer" for later calls
-        start = history->wrix;  // "wrix" might change between sub sequent calls
-        return 0;               // to this function (by MEASURE task)
+    if ( !data || !index ) {      // Save reference "data pointer" for later calls
+        wrix = history->wrix;     // "wrix" might change between sub sequent calls
+        return 0;                 // to this function (by MEASURE task)
     }
-    if ( index >= HISTORY_SIZE ) {
+    // Check "index" argument validity
+    if ((index <= -HISTORY_SIZE)  || (HISTORY_SIZE <= index)) {
          memset( data, 0, sizeof(dataset_t) );
          return 0;
     }
-    index += start;
+    index += wrix;
     if ( index >= HISTORY_SIZE ) {
          index -= HISTORY_SIZE;
+    }
+    else if ( index < 0 ) {       // Typically we want to read from current to past !
+         index += HISTORY_SIZE;
     }
     memcpy( data, &history->data[index], sizeof(dataset_t) );
     return 1; 

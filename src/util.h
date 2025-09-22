@@ -19,7 +19,7 @@ class UTIL
         const char    *fwupdate( int args, const char *filename );
         const char    *charge( int args, const char *arg1 );
         String         httpCharge( int args, const char *arg1, const int arg2 );
-        const char    *exportHistory( void );
+        const char    *exportHistory( const char *hours );
     
     private:
 

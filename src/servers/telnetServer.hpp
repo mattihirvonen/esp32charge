@@ -564,7 +564,9 @@
                                           }
 
           else if (argv0Is ("export"))    {
-                                              return Utils.exportHistory();
+                                              if (argc == 1) {  return Utils.exportHistory ("12");    }
+                                              if (argc == 2) {  return Utils.exportHistory (argv[1]); }
+                                              return "export command fail";
                                           }
                                           
           else if (argv0Is ("fwupdate"))  {

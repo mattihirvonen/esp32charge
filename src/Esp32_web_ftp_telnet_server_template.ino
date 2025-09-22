@@ -81,7 +81,7 @@ String httpRequestHandlerCallback (char *httpRequest, httpConnection *hcn) {
                                                                                       return Utils.httpCharge(1,"setAh",90);
                                                                                   }
                     else if (httpRequestStartsWith ("GET /export.html "))         { // used to exportHistory: Dynamically generated HTML page
-                                                                                      Utils.exportHistory();
+                                                                                      Utils.exportHistory("12");
                                                                                       return "<HTML>Export measurement data history - dynamic HTML page<br><br><hr /><hr /></HTML>";
                                                                                   }
                     else if (httpRequestStartsWith ("GET /resetAh.html "))        { // used to setAh=0: Dynamically generated HTML page

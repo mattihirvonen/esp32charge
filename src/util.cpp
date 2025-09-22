@@ -279,7 +279,7 @@ String UTIL::httpCharge( int args, const char *arg1, const int arg2 )
 // https://randomnerdtutorials.com/esp32-write-data-littlefs-arduino/
 // https://github.com/lorol/LITTLEFS/issues/10
 
-const char * UTIL::exportHistory( void )
+const char * UTIL::exportHistory( const char *hours )
 {
     #define FLUSH_TRIGGER 0x2000
 
@@ -295,7 +295,7 @@ const char * UTIL::exportHistory( void )
     string  fp = fileSystem.makeFullPath (fileName, "/");
 
     if (fileSystem.isFile (fp)) {
-        if (fileSystem.deleteFile (fp)) {
+        if (!fileSystem.deleteFile (fp)) {
             return (char *) "452 could not delete file\r\n";
 
         }
@@ -313,8 +313,13 @@ const char * UTIL::exportHistory( void )
     }
 #endif
 
+    int  samples = atoi(hours);
+    
+    if ( samples ) {  samples = samples * 3600 / data.getHistoryPeriod();  }
+    else           {  samples =      12 * 3600 / data.getHistoryPeriod();  }
+
     data.getHistoryData( NULL, 0 );
-    for ( int i = 2; i < (HISTORY_SIZE - 2); i++ )
+    for ( int i = -samples; i <= 0; i++ )
     {
         dataset_t dataset;
 
@@ -329,7 +334,7 @@ const char * UTIL::exportHistory( void )
         }
     }
     f.close();
-    return "Done";
+    return "Export done";
 }
 
 //==================================================================================
