@@ -78,6 +78,21 @@ Other significant things
 - Commenting WiFi configuration options more reader covinient and add optional feature to clear WiFi configuration files from flash file system at boot time (when user make wrong configuration and do not get WiFi connection to target device) 
 - A lot of other things (compare for example repository's current state to commit ".gitignore" very begin of commit history). IntelliJ IDEA or PyCharm community versions have good visual git tools to compare commits. Also some Visual Studio Code plugins offer same features.
 
+### ESP32S3 Recovery from bad program
+Sometimes developer make bad program which loops for ever reset and program die (this is really easy common mistake).
+ESP32S3 do not have real externa USB serial port chip which handles physically EN (reset) and BOOT mode pins (like)
+ESP32nodeMCU board does! Here USB serial port is only piece of boot program of ESP32S3 CPU.
+
+Recovery sequence is explained here
+- https://wiki.seeedstudio.com/noport_upload_fails/#for-xiao-esp32s3-sense
+There are two minimal buttons on Seeed Studio's XIAO ESP32S3.
+- EN (reset button)
+- BOOT mode selector (same as button on GPIO0 - suggest to use external larger button on own board)
+Use following sequence to recover from bad application:
+- Press and hold the BOOT key while powering up (continue keeping boot button pressed)
+- Then press the Reset key once (you can enter BootLoader mode).
+- Release BOOT key (you are now on boot loader mode !!!)
+- Upload known well behave application program 
 
 ### NOTE: Little FS !!!!!!!!!
 *LittleFS keeps file writes in a buffer until the file is explicitly flushed or closed. This behavior is intentional and designed to optimize performance by reducing the number of write operations to the underlying storage, which can be slow and wear-sensitive (e.g., in flash memory).*
