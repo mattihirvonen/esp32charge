@@ -1075,7 +1075,7 @@
       }
       
       // try to parse what we have got from client
-      int  attenuation = ADC_ATTEN_DB_11;
+      int  attenuation = ADC_ATTEN_DB_12;
       char posNeg1 [9] = "";
       char posNeg2 [9] = "";
       int treshold1;
