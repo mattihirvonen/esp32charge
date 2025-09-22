@@ -360,15 +360,43 @@ void cronHandlerCallback (char *cronCommand) {
 }
 
 
-void logMemory( int memsize ) {
-    byte*  psdRamBuffer = (byte*)ps_malloc(memsize);
+static int psramInitialized = 0;
 
+// Example how to use PSRAM
+void *psramMemory( int memsize )
+{
+    // Initialize the PSRAM.
+    if (!psramInitialized) {
+         psramInitialized = 1;
+         psramInit();
+    }
+
+    // Allocate memory in the PSRAM.
+    byte* psdRamBuffer = (byte*)ps_malloc(memsize);
+
+    // Show heap status
     log_d("Total heap:  %d", ESP.getHeapSize());
     log_d("Free  heap:  %d", ESP.getFreeHeap());
+    log_d("Used  heap:  %d", ESP.getHeapSize()  - ESP.getFreeHeap());
     log_d("Total PSRAM: %d", ESP.getPsramSize());
     log_d("Free  PSRAM: %d", ESP.getFreePsram());
     log_d("Used  PSRAM: %d", ESP.getPsramSize() - ESP.getFreePsram());
+
+    #if 0
+    //  Write some data to the PSRAM.
+    for (int i = 0; i < 1024; i++) {
+        p
+        sdRamBuffer[i] = i;
+    }
+
+    // Free the PSRAM memory.
     free(psdRamBuffer);
+    #endif
+
+    // Deinitialize the PSRAM.
+    // psramDone();  // Not declared in this scope
+
+    return psdRamBuffer;
 }
 
 
@@ -377,7 +405,7 @@ void setup () {
     Serial.begin (115200);
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
-    logMemory( 50000 );
+    // psramMemory( sizeof(history_t) );
 
     // Start measurement task
     #if 0

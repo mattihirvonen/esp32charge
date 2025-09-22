@@ -5,7 +5,12 @@
 #include "Arduino.h"
 #include "Wire.h"
 
-#define  HISTORY_SIZE  10000  // Count of data entries (ring buffer)
+#define   USE_PSRAM     1
+#if       USE_PSRAM
+#define   HISTORY_SIZE  100000  // Count of data entries (ring buffer)
+#else
+#define   HISTORY_SIZE  10000   // Count of data entries (ring buffer)
+#endif // USE_PSRAM
 
 // History example:
 // - 10000 data samples * 8 bytes/sample => buffer size 80 kB

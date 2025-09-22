@@ -65,9 +65,13 @@ Rmeasure INA module:
 #define  CAPASITY_Ah     90     // Default battery capacity
 #define  HISTORY_PERIOD  10     // Default data set sample rate [s]
 
-void dmesg (char *message1);
+void  dmesg (char *message);
+void *psramMemory( int memsize );
 
-history_t  history;
+#if USE_PSRAM == 0
+history_t  history_static;
+#endif
+history_t *history;
 
 // Strategy:
 // - Raise measure task's priority over other task's priority to
@@ -180,10 +184,18 @@ void vTaskMeasure( void * pvParameters )
     xLastWakeTime = xTaskGetTickCount ();
     memset( (void*)timingDelay, sizeof(timingDelay), 0 );
 
-    // Initialize measurement data history at startup
+    // Select measurement history data memory
+    #if USE_PSRAM
+    history = (history_t *) psramMemory( sizeof(history_t) );
+    Serial.println();
+    #else
+    history = &history_static;
+    #endif
+
+    // Initialize measurement data and history at startup
     _mAs = 0;
-    memset(&history, 0, sizeof(history)); // HISTORY_SIZE * sizeof(dataset_t)
-    history.period = HISTORY_PERIOD;
+    memset(history, 0, sizeof(history_t));
+    history->period = HISTORY_PERIOD;
     
     while ( 1 )
     {
@@ -310,10 +322,10 @@ void update_measurement_history( int mV, int mA, int mAs )
     static unsigned int counter;
     static          int sum_mA;
 
-    unsigned int   ix = history.wrix;
+    unsigned int   ix = history->wrix;
     dataset_t     *pd;
 
-    if ( ++counter < history.period ) {
+    if ( ++counter < history->period ) {
         sum_mA += mA;
         return;
     }
@@ -322,8 +334,8 @@ void update_measurement_history( int mV, int mA, int mAs )
     if ( ++ix >= HISTORY_SIZE ) {
            ix  = 0;
     }
-    history.wrix = ix;
-    pd = &history.data[ix];
+    history->wrix = ix;
+    pd = &history->data[ix];
     pd->mAs = mAs;
     pd->mA  = mA;  // sum_mA / history.period;  // Average current over period
     pd->mV  = mV;
@@ -512,9 +524,9 @@ int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
 {
     static int start;
 
-    if ( !data || !index ) {   // Save reference "data pointer" for later calls
-        start = history.wrix;  // "wrix" might change between sub sequent calls
-        return 0;              // to this function (by MEASURE task)
+    if ( !data || !index ) {    // Save reference "data pointer" for later calls
+        start = history->wrix;  // "wrix" might change between sub sequent calls
+        return 0;               // to this function (by MEASURE task)
     }
     if ( index >= HISTORY_SIZE ) {
          memset( data, 0, sizeof(dataset_t) );
@@ -524,7 +536,7 @@ int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
     if ( index >= HISTORY_SIZE ) {
          index -= HISTORY_SIZE;
     }
-    memcpy( data, &history.data[index], sizeof(dataset_t) );
+    memcpy( data, &history->data[index], sizeof(dataset_t) );
     return 1; 
 }
 
@@ -532,13 +544,13 @@ int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
 // Get measurement history period [s]
 int MEASURE::getHistoryPeriod( void )
 {
-    return  history.period;
+    return  history->period;
 }
 
 
 // Set measurement history period [s]
 int MEASURE::setHistoryPeriod( unsigned int period_s )
 {
-    history.period = period_s;
-    return  period_s;
+    history->period = period_s;
+    return   period_s;
 }
