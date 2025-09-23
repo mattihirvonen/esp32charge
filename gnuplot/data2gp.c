@@ -19,8 +19,10 @@ typedef struct
 
 typedef struct
 {
-    char       sample_file[64];
-    float      sample_period;
+    char       sample_file[64];    // Data filename
+    float      sample_period;      // Data sample rate  [s]
+    float      offset;             // Plot start offset [h]
+    float      hours;              // Plot time         [h]
 } args_t;
 
 
@@ -48,22 +50,35 @@ int print_data(dataset_t data[], int items)
 
 int print_gnuplot(dataset_t data[], int items, args_t *args)
 {
-    float time = 0.0;
-    float dt   = args->sample_period / 3600.0;
-    int   rows = 0;
+    float time  = 0.0;
+    float dt    = args->sample_period / 3600.0;
 
+    float ptime = 0.0;
+    int   rows  = 0;
+
+    printf("# offset=%f        hours=%f   sample_period=%7f\n", args->offset, args->hours, args->sample_period);
+
+    if ( args->hours <= 0 ) {
+         args->hours  = 9999.9;
+    }
     for (int i = 0; i < items; i++)
     {
         float Ah   = data[i].mAs / (1000.0 * 3600.0);
         float Ubus = data[i].mV  /  1000.0;
         float Ibus = data[i].mA  /  1000.0;
 
-        if ( data[i].mAs )  // Skip empty rows
-        {
-            printf("%7.3f  %7.3f  %7.3f  %6.3f\n", time, Ah, Ibus, Ubus);
-            rows++;
+        if ( data[i].mAs ) {                      // Skip empty rows
+            if ( time >= args->offset ) {         // Start plot data at "offset"
+                if ( ptime <= args->hours ) {     // End plot data after "hours"
+
+                    printf("  %7.3f  %7.3f  %7.3f  %6.3f\n", ptime, Ah, Ibus, Ubus);
+                    ptime += dt;
+                    rows  += 1;
+                }
+            }
             time += dt;
         }
+      //printf("time=%f  ptime=%f  rows=%d\n", time, ptime, rows);
     }
     return rows;
 }
@@ -110,7 +125,7 @@ void parse_args(args_t *args, int argc, char *argv[])
     // put ':' in the starting of the
     // string so that program can
     //distinguish between '?' and ':'
-    while((opt = getopt(argc, argv, ":s:f:ilrx")) != -1)
+    while((opt = getopt(argc, argv, ":f:s:o:h:ilrx")) != -1)
     {
         switch(opt)
         {
@@ -126,6 +141,12 @@ void parse_args(args_t *args, int argc, char *argv[])
                 break;
             case 's':
                 args->sample_period = parse_arg2float(optarg);
+                break;
+            case 'o':
+                args->offset = parse_arg2float(optarg);
+                break;
+            case 'h':
+                args->hours = parse_arg2float(optarg);
                 break;
             case ':':
                 printf("option needs a value\n");
@@ -156,6 +177,8 @@ int main(int argc, char *argv[])
 
     strcpy(args.sample_file, SAMPLE_FILE);
     args.sample_period = SAMPLE_PERIOD;
+    args.offset        = 0;
+    args.hours         = 0;
     parse_args(&args, argc, argv);
 
     file_contents = file_read(&file_size, args.sample_file);
