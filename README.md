@@ -54,7 +54,8 @@ New telnet commands
 - *ina [reg] [data]* - write "data" to INA219 chip register "reg". Data value can be 10 or 16 based (0x.. prefix)
 - *charge* - print voltage [V],  current value [A], current charged/discharged in [As] and [Ah]
 - *charge [stat]* - print measure task's self measuremnt debug statistics of task's timings [ms] and [10*ms]
-- *export [hours]* - export measurement history data file of latest "hours" (little endian binary format - struct dataset_t)
+- *export* - export full measurement history data file (little endian binary format - struct dataset_t)
+- *export [hours]* - export measurement history data file of latest "hours"
 - *fwupdate* - firmware boot code update to flash chip from file system "/firmware.bin" (use FTP to upload file)
 
 Other significant things
@@ -121,13 +122,14 @@ This behavior is common in many file systems to balance performance and storage 
 - (Better) web interface to access current measurement data in boat (WiFi Access Point)
 - Install in boat and calibrate measurement (use new current sense shunt resistor, see PDF data) - done
 - Change sample rate to 10 ms (100 Hz) - done
-- Add PSRAM to collect larger "raw mA" or voltage measurement data
+- Add PSRAM to collect larger "raw mA" or voltage measurement data - done (now configured 11 days with one sample per 10 seconds)
 - Data measurement burst(s) for osciloscope type visual graphic current vs time view (with higher samplerate) to see
   for example voltage drop of starter battery during engine start
 - Save charge measurement data burst(s) to file system for later analysis (FTP transfer to PC for post analysis) - partially done
 - Single shot / free run selection to oscilloscope
 - Graphical web page of charge history
-- Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics, refigerator, tiller pilot, heater (Ebersprecher), etc...
+- Add analyzing heuristics to compute cumulative current consumption of different devices like: navigation electronics,
+  refigerator, tiller pilot, heater (Ebersprecher), etc...
 
 ### Alternatives
 - There are some interesting commercial products from Victron Energy
@@ -138,12 +140,12 @@ This behavior is common in many file systems to balance performance and storage 
 - https://www.victronenergy.com/upload/documents/Datasheet-SmartShunt-IP65-EN-.pdf
 - https://www.victronenergy.com/upload/documents/Datasheet-BMV-712-Smart-EN.pdf
 - https://www.victronenergy.com/upload/documents/Datasheet-BMV-700-series-EN.pdf
-- All these devices have interesting 4 pin serial port connector for hobbyist
+- All these devices have interesting 4 pin serial port connector for hobbyist (or Bluetooth communication??)
 - Even these devices offers serial port communication to collect measurement data,
   communication and measurement sample ratio is slow and do not offer possibility to make oscilloscope style measurements of following cases
-  - voltage drop vs time at starting event (for example one sample per ms, feature ToDo...)
-  - exact current consumpion of tiller pilot durin active ("servo motor") motion drive, where motor drives typically
-    one or two second (feature ToDo...)
+  - voltage drop vs time at engine start (for example one sample per ms, feature ToDo...)
+  - current of tiller pilot durin active ("servo motor") motion drive, where motor drives typically
+    one or two second (for example one sample per 10 ms, feature ToDo...)
 - https://www.victronenergy.com/live/open_source:start
 - https://www.victronenergy.fi/battery-monitors/smart-battery-shunt#downloads-technical-information
 - https://www.victronenergy.com/upload/documents/VE.Direct-Protocol-3.34.pdf

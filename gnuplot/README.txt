@@ -11,3 +11,11 @@ Workflow
 
       gnuplot  plot_script.gp
 
+
+"data2gp" Command Line Options
+------------------------------
+ -f [filename]   input data file name (default filename is "history.dat")
+ -s [seconds]    "dataset_t" and output's' rows wall clock time step in "seconds"
+                 (default is 10, "seconds" can be also float eg. 0.1)
+ -o [hours]      start gnuplot data rows after "hours" of valid data in "filename"
+ -h [hours]      end   gnuplot data rows after "hours" of valid data in "filename"
