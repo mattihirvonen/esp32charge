@@ -1,7 +1,7 @@
 
-CC=c:\pgm\CodeBlocks\MinGW\bin\x86_64-w64-mingw32-gcc.exe
+CC=  c:\pgm\CodeBlocks\MinGW\bin\x86_64-w64-mingw32-gcc.exe
 
-APP=data2gp.exe
+APP= data2gp.exe
 
 OPT= -Wall -Wextra
 
