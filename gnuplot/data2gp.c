@@ -7,6 +7,9 @@
 
 // https://www.delftstack.com/howto/c/read-binary-file-in-c/
 
+#define  SAMPLE_FILE    "history.dat"   // Default sample sample data file
+#define  SAMPLE_PERIOD  10.0            // Default sample period in seconds
+
 typedef struct
 {
     int32_t    mAs;
@@ -14,7 +17,13 @@ typedef struct
     int16_t    mV;
 } dataset_t;
 
-char filename[64] = "history.dat";
+typedef struct
+{
+    char       sample_file[64];
+    float      sample_period;
+} args_t;
+
+
 
 
 int print_data(dataset_t data[], int items)
@@ -37,12 +46,10 @@ int print_data(dataset_t data[], int items)
 }
 
 
-int print_gnuplot(dataset_t data[], int items)
+int print_gnuplot(dataset_t data[], int items, args_t *args)
 {
-    #define  SAMPLE_PERIOD  10.0   // Seconds
-
     float time = 0.0;
-    float dt   = SAMPLE_PERIOD / 3600.0;
+    float dt   = args->sample_period / 3600.0;
     int   rows = 0;
 
     for (int i = 0; i < items; i++)
@@ -86,14 +93,24 @@ char *file_read(int *filesize, const char *filename)
 }
 
 
-void parse_args(int argc, char *argv[])
+float parse_arg2float(char *arg)
+{
+    float value;
+
+    sscanf(arg, "%f", &value);
+  //printf("%s =  %f\n", __func__, value);
+    return value;
+}
+
+
+void parse_args(args_t *args, int argc, char *argv[])
 {
     int opt;
 
     // put ':' in the starting of the
     // string so that program can
     //distinguish between '?' and ':'
-    while((opt = getopt(argc, argv, ":if:lrx")) != -1)
+    while((opt = getopt(argc, argv, ":s:f:ilrx")) != -1)
     {
         switch(opt)
         {
@@ -102,15 +119,20 @@ void parse_args(int argc, char *argv[])
             case 'r':
                 printf("option: %c\n", opt);
                 break;
+
             case 'f':
-            //  printf("filename: %s\n", optarg);
-                strcpy(filename, optarg);
+            //  printf("sample_file: %s\n", optarg);
+                strcpy(args->sample_file, optarg);
+                break;
+            case 's':
+                args->sample_period = parse_arg2float(optarg);
                 break;
             case ':':
                 printf("option needs a value\n");
                 break;
             case '?':
                 printf("unknown option: %c\n", optopt);
+                exit(1);
                 break;
         }
     }
@@ -119,27 +141,30 @@ void parse_args(int argc, char *argv[])
     // which are not parsed
     for(; optind < argc; optind++){
     //  printf("extra arguments: %s\n", argv[optind]);
-        strcpy(filename, argv[optind]);
+        strcpy(args->sample_file, argv[optind]);
     }
 }
 
 
 int main(int argc, char *argv[])
 {
-    char *file_contents;
-    int   file_size;
-    int   data_items;
-    int   data_rows;
+    char   *file_contents;
+    int     file_size;
+    int     data_items;
+    int     data_rows;
+    args_t  args;
 
-    parse_args(argc, argv);
+    strcpy(args.sample_file, SAMPLE_FILE);
+    args.sample_period = SAMPLE_PERIOD;
+    parse_args(&args, argc, argv);
 
-    file_contents = file_read(&file_size, filename);
+    file_contents = file_read(&file_size, args.sample_file);
     data_items    = file_size / sizeof(dataset_t);
 
-    printf("# file_name=%s  file_size=%d  data_items=%d\n", filename, file_size, data_items);
+    printf("# file_name=%s  file_size=%d  data_items=%d\n", args.sample_file, file_size, data_items);
 
 //  data_rows = print_data(    (dataset_t *)file_contents, data_items );
-    data_rows = print_gnuplot( (dataset_t *)file_contents, data_items );
+    data_rows = print_gnuplot( (dataset_t *)file_contents, data_items, &args);
 
     printf("# data_rows=%d\n", data_rows);
 
