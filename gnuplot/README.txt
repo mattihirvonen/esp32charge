@@ -19,3 +19,15 @@ Workflow
                  (default is 10, "seconds" can be also float eg. 0.1)
  -o [hours]      start gnuplot data rows after "hours" of valid data in "filename"
  -h [hours]      end   gnuplot data rows after "hours" of valid data in "filename"
+
+
+ Windows And CodeBlocks
+ ----------------------
+ This directory contain also CodeBlocks project file to build "data2gp"
+ conversion application in Windows environment.
+
+ Note:
+ Install CodeBlocks with valid C/C++ compiler (here with bundled MinGW).
+ Of course you can use any other compiler available for your PC,
+ but you have to create "Makefile" of your own
+ (probably this is not any key issue if you want to use some other compiler tool).
