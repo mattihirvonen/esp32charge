@@ -360,7 +360,8 @@ void cronHandlerCallback (char *cronCommand) {
 }
 
 
-static int psramInitialized = 0;
+//----------------------------------------------------------------------------------------------------
+/* static */ int psramInitialized = 0;
 
 // Example how to use PSRAM
 void *psramMemory( int memsize )
@@ -399,13 +400,20 @@ void *psramMemory( int memsize )
     return psdRamBuffer;
 }
 
+//----------------------------------------------------------------------------------------------------
+//  https://randomnerdtutorials.com/esp32-bluetooth-classic-arduino-ide/
+
+void setup_BluetoothSerial( void );
+void loop_BluetoothSerial(  void );
+
+//----------------------------------------------------------------------------------------------------
 
 void setup () {
 	delay (3000);  // Give VScode+PlatformIO time to open monitor terminal window's COM port
     Serial.begin (115200);
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
-    // psramMemory( sizeof(history_t) );
+//  psramMemory( 0x2000 );
 
     // Start measurement task
     #if 0
@@ -517,5 +525,14 @@ void loop ()
           snprintf(s, sizeof(s), "[%s] is running on core %i (priority %i)",
                       __func__, xPortGetCoreID(), uxTaskPriorityGet(NULL) );
           dmesg(s);
+
+          setup_BluetoothSerial();
+    }
+
+    static TickType_t xLastWakeTime;
+    
+    if ( (int)(xTaskGetTickCount() - xLastWakeTime) > 20 ) {
+        loop_BluetoothSerial();
+        xLastWakeTime = xTaskGetTickCount ();
     }
 }
