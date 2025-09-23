@@ -11,7 +11,7 @@ all: $(APP)
 Debug:        $(APP)
 Release:      $(APP)
 cleanDebug:   clean
-cleanTelease: clean
+cleanRelease: clean
 
 $(APP):  Makefile  data2gp.c
 	$(CC)  $(OPT)  data2gp.c  -o $(APP)
