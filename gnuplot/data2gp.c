@@ -84,7 +84,8 @@ int print_gnuplot(dataset_t data[], int items, args_t *args)
 }
 
 
-char *file_read(int *filesize, const char *filename)
+// Genderic binary file read into memory
+void *file_read(int *filesize, const char *filename)
 {
     FILE* in_file = fopen(filename, "rb");
     if (!in_file) {
@@ -97,7 +98,7 @@ char *file_read(int *filesize, const char *filename)
         exit(EXIT_FAILURE);
     }
 
-    char *file_contents = malloc(sb.st_size);
+    void *file_contents = malloc(sb.st_size);
     memset(file_contents, 0, sb.st_size);
 
     fread(file_contents, sb.st_size, 1, in_file);
@@ -169,11 +170,11 @@ void parse_args(args_t *args, int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    char   *file_contents;
-    int     file_size;
-    int     data_items;
-    int     data_rows;
-    args_t  args;
+    dataset_t *file_contents;
+    int        file_size;
+    int        data_items;
+    int        data_rows;
+    args_t     args;
 
     strcpy(args.sample_file, SAMPLE_FILE);
     args.sample_period = SAMPLE_PERIOD;
@@ -186,8 +187,8 @@ int main(int argc, char *argv[])
 
     printf("# file_name=%s  file_size=%d  data_items=%d\n", args.sample_file, file_size, data_items);
 
-//  data_rows = print_data(    (dataset_t *)file_contents, data_items );
-    data_rows = print_gnuplot( (dataset_t *)file_contents, data_items, &args);
+//  data_rows = print_data(   file_contents, data_items );
+    data_rows = print_gnuplot(file_contents, data_items, &args);
 
     printf("# data_rows=%d\n", data_rows);
 
