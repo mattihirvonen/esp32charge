@@ -1,6 +1,6 @@
 @echo off
 
-set  DATA2GP=bin\Debug\data2gp.exe
+set  DATA2GP=data2gp.exe
 set  GNUPLOT=c:\pgm\gnuplot\bin\gnuplot.exe
 
 rem  echo open 192.168.2.1   >ftpscript.txt
