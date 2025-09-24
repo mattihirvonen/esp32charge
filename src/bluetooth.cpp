@@ -5,6 +5,12 @@
 // ESP32S3 support only Bluetooth Low Energy (BLE)
 // - https://registry.platformio.org/libraries/avinabmalla/ESP32_BleSerial/examples/BleSerial_Bridge/BleSerial_Bridge.ino
 //
+// Library fix:
+// - https://esp32.com/viewtopic.php?t=20293
+// - Increase numHandles to 30
+// - /c/Users/mattihirvonen/.platformio/packages/framework-arduinoespressif32/libraries/BLE/src/BLEServer.h
+// - BLEService*     createService(BLEUUID uuid, uint32_t numHandles=30, uint8_t inst_id=0);
+//
 // #include <stdint.h>
 // #include "Arduino.h"
 
@@ -22,7 +28,7 @@ const int STACK_SIZE  = 8192;
 BleSerial SerialBT;
 
 uint8_t   unitMACAddress[6];   // Use MAC address in BT broadcast and display
-char      deviceName[20];      // The serial string that is broadcast.
+char      deviceName[32];      // The serial string that is broadcast.
 
 uint8_t bleReadBuffer[BUFFER_SIZE];
 uint8_t serialReadBuffer[BUFFER_SIZE];
@@ -36,7 +42,7 @@ void startBluetooth() {
   unitMACAddress[5] += 2;                                                          
   
   //Create device name
-  sprintf(deviceName, "ESP32-Bridge-%02X%02X", unitMACAddress[4], unitMACAddress[5]); 
+  sprintf(deviceName, "ESP32-BLE-Bridge-%02X%02X", unitMACAddress[4], unitMACAddress[5]); 
 
   //Init BLE Serial
   SerialBT.begin(deviceName);

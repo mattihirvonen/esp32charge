@@ -528,11 +528,5 @@ void loop ()
 
           setup_BluetoothSerial();
     }
-
-    static TickType_t xLastWakeTime;
-    
-    if ( (int)(xTaskGetTickCount() - xLastWakeTime) > 20 ) {
-        loop_BluetoothSerial();
-        xLastWakeTime = xTaskGetTickCount ();
-    }
+    loop_BluetoothSerial();
 }
