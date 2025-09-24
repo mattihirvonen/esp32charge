@@ -334,12 +334,12 @@ void update_measurement_history( int mV, int mA, int mAs )
     if ( ++ix >= HISTORY_SIZE ) {
            ix  = 0;
     }
-    history->wrix = ix;
     pd = &history->data[ix];
     pd->mAs = mAs;
-    pd->mA  = mA;  // sum_mA / history.period;  // Average current over period
+    pd->mA  = sum_mA / history->period;  // Average current over period
     pd->mV  = mV;
     sum_mA  = 0;
+    history->wrix = ix; // update wrix to poit latest "ready" dataset_t
 }
 
 ////////////////////////////////////////////////////////
