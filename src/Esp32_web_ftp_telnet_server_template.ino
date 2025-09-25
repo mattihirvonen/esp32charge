@@ -413,6 +413,10 @@ void setup () {
     Serial.begin (115200);
     Serial.println (string (MACHINETYPE " (") + string ((int) ESP.getCpuFreqMHz ()) + (char *) " MHz) " HOSTNAME " SDK: " + ESP.getSdkVersion () + (char *) " " VERSION_OF_SERVERS " compiled at: " __DATE__ " " __TIME__); 
 
+    char s[64];
+    snprintf(s, sizeof(s), "Build %s %s", __DATE__, __TIME__);
+    dmesg(s);
+    
 //  psramMemory( 0x2000 );
 
     // Start measurement task

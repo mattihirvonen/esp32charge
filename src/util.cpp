@@ -319,11 +319,11 @@ const char * UTIL::exportHistory( const char *hours )
     else           {  samples =      12 * 3600 / data.getHistoryPeriod();  }
 
     data.getHistoryData( NULL, 0 );
-    for ( int i = -samples; i <= 0; i++ )
+    for ( int index = -samples; index <= 0; index++ )
     {
         dataset_t dataset;
 
-        data.getHistoryData( &dataset, i );
+        data.getHistoryData( &dataset, index );
         f.write( (const uint8_t*) &dataset, sizeof(dataset_t) );
         bytesFlush += sizeof(dataset_t);
 
@@ -332,6 +332,11 @@ const char * UTIL::exportHistory( const char *hours )
             f.flush();  // No compile time error
           //f.sync();   // Not supported method
         }
+        #if 1
+        char s[64];
+        snprintf(s, sizeof(s), "%s: i=%d mAs=%d mA=%d, mV=%d", __func__, index, dataset.mAs, dataset.mA, dataset.mV);
+        dmesg(s);
+        #endif
     }
     f.close();
     return "Export done";
