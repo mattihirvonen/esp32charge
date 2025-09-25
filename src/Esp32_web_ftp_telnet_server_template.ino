@@ -409,7 +409,7 @@ void setup () {
     snprintf(s, sizeof(s), "Build %s %s", __DATE__, __TIME__);
     dmesg(s);
     
-    // psramMemory( sizeof(history_t) );
+//  psramMemory( 0x2000 );
 
     // Start measurement task
     #if 0

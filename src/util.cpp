@@ -332,7 +332,7 @@ const char * UTIL::exportHistory( const char *hours )
             f.flush();  // No compile time error
           //f.sync();   // Not supported method
         }
-        #if 1
+        #if  0
         char s[64];
         snprintf(s, sizeof(s), "%s: i=%d mAs=%d mA=%d, mV=%d", __func__, index, dataset.mAs, dataset.mA, dataset.mV);
         dmesg(s);
