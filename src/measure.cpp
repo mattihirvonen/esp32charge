@@ -342,7 +342,7 @@ void update_measurement_history( int mV, int mA, int mAs )
     sum_mA  = 0;
     history->wrix = ix; // update wrix to poit latest "ready" dataset_t
 
-    #if 1
+    #if 0
     static char s[64];
     snprintf(s, sizeof(s), "%s: ix=%d mAs=%d mA=%d mV=%d", __func__, ix, pd->mAs, pd->mA, pd->mV);
     dmesg(s);
@@ -538,7 +538,7 @@ int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
     // Check "index" argument validity
     if ( !(-HISTORY_SIZE < index) && (index < HISTORY_SIZE) ) {
          memset( data, 0, sizeof(dataset_t) );
-         #if 1
+         #if  0
          char s[64];
          snprintf(s, sizeof(s), "%s: wrix=%d index=%d", __func__, wrix, index);
          dmesg(s);
@@ -553,7 +553,8 @@ int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
          index %= HISTORY_SIZE;
     }
     memcpy( data, &history->data[index], sizeof(dataset_t) );
-    #if 1
+
+    #if  0
     char s[64];
     snprintf(s, sizeof(s), "%s: wrix=%d index=%d mAs=%d mA=%d, mV=%d", __func__, wrix, index, data->mAs, data->mA, data->mV);
     dmesg(s);
