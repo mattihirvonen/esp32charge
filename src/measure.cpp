@@ -65,7 +65,7 @@ Rmeasure INA module:
 #define  CAPASITY_Ah     90     // Default battery capacity
 #define  HISTORY_PERIOD  10     // Default data set sample rate [s]
 
-void  dmesg (char *message);
+void  dmesg (char *message1);
 void *psramMemory( int memsize );
 
 #if USE_PSRAM == 0
@@ -322,11 +322,11 @@ void update_measurement_history( int mV, int mA, int mAs )
     static unsigned int counter;
     static          int sum_mA;
 
-    unsigned int   ix = history->wrix;
-    dataset_t     *pd;
+    volatile dataset_t  *pd;
+    unsigned int         ix = history->wrix;
 
+    sum_mA += mA;
     if ( ++counter < history->period ) {
-        sum_mA += mA;
         return;
     }
     counter = 0;
@@ -334,12 +334,19 @@ void update_measurement_history( int mV, int mA, int mAs )
     if ( ++ix >= HISTORY_SIZE ) {
            ix  = 0;
     }
-    pd = &history->data[ix];
+    pd      = &history->data[ix];
+//  mA      = sum_mA / history->period;  // Average current over period
     pd->mAs = mAs;
-    pd->mA  = sum_mA / history->period;  // Average current over period
+    pd->mA  = mA;; 
     pd->mV  = mV;
     sum_mA  = 0;
     history->wrix = ix; // update wrix to poit latest "ready" dataset_t
+
+    #if 1
+    static char s[64];
+    snprintf(s, sizeof(s), "%s: ix=%d mAs=%d mA=%d mV=%d", __func__, ix, pd->mAs, pd->mA, pd->mV);
+    dmesg(s);
+    #endif
 }
 
 ////////////////////////////////////////////////////////
@@ -524,23 +531,34 @@ int MEASURE::getHistoryData( dataset_t *data, unsigned int index )
 {
     static int wrix;              // Saved current wrix
 
-    if ( !data || !index ) {      // Save reference "data pointer" for later calls
+    if ( !data ) {                // Save reference "data pointer" for later calls
         wrix = history->wrix;     // "wrix" might change between sub sequent calls
         return 0;                 // to this function (by MEASURE task)
     }
     // Check "index" argument validity
-    if ((index <= -HISTORY_SIZE)  || (HISTORY_SIZE <= index)) {
+    if ( !(-HISTORY_SIZE < index) && (index < HISTORY_SIZE) ) {
          memset( data, 0, sizeof(dataset_t) );
+         #if 1
+         char s[64];
+         snprintf(s, sizeof(s), "%s: wrix=%d index=%d", __func__, wrix, index);
+         dmesg(s);
+         #endif
          return 0;
     }
     index += wrix;
-    if ( index >= HISTORY_SIZE ) {
-         index -= HISTORY_SIZE;
-    }
-    else if ( index < 0 ) {       // Typically we want to read from current to past !
+    if ( index < 0 ) {              // Typically we want to read from current to past !
          index += HISTORY_SIZE;
     }
+    if ( index >= HISTORY_SIZE ) {  // Force normalization to valid range
+         index %= HISTORY_SIZE;
+    }
     memcpy( data, &history->data[index], sizeof(dataset_t) );
+    #if 1
+    char s[64];
+    snprintf(s, sizeof(s), "%s: wrix=%d index=%d mAs=%d mA=%d, mV=%d", __func__, wrix, index, data->mAs, data->mA, data->mV);
+    dmesg(s);
+    #endif
+
     return 1; 
 }
 
