@@ -335,16 +335,19 @@ void update_measurement_history( int mV, int mA, int mAs )
            ix  = 0;
     }
     pd      = &history->data[ix];
-//  mA      = sum_mA / history->period;  // Average current over period
+    #if 1
+    mA      = sum_mA / (signed) history->period;  // Average current over period
+    #endif
     pd->mAs = mAs;
-    pd->mA  = mA;; 
+    pd->mA  = mA; 
     pd->mV  = mV;
     sum_mA  = 0;
-    history->wrix = ix; // update wrix to poit latest "ready" dataset_t
+    history->wrix = ix; // Update wrix to point latest "ready" dataset_t
 
     #if 0
-    static char s[64];
-    snprintf(s, sizeof(s), "%s: ix=%d mAs=%d mA=%d mV=%d", __func__, ix, pd->mAs, pd->mA, pd->mV);
+    static char s[88];
+    snprintf(s, sizeof(s), "%s: ix=%d mAs=%d mA=%d mV=%d sum_mA=%d period=%d mA=%d", "&",
+                            ix, pd->mAs, pd->mA, pd->mV, sum_mA, history->period, mA);
     dmesg(s);
     #endif
 }
